@@ -32,7 +32,7 @@ export const posts: Post[] = [
     seoDescription: "Discover the official Mia Rey website featuring artistic portrait photography, exclusive photos, and premium content. Explore the gallery and join for VIP access.",
     keywords: "mia rey, mia rey model, mia rey official website, mia rey photos, mia rey gallery, mia rey exclusive content, mia rey premium content, mia rey private photos, exclusive model gallery, artistic portrait photography",
     content: (
-      <div className="text-foreground/80 leading-loose space-y-6 text-[17px]" style={{ fontFamily: "'Dancing Script', cursive" }}>
+      <div className="leading-loose space-y-7 text-[20px]" style={{ fontFamily: "'Dancing Script', cursive", color: "#3a2e1e" }}>
         <p>Hi, I'm Mia Rey.</p>
         <p>
           Welcome to my official website — a place where I share my creative world, my photography, and the visual stories behind every image. This website is more than just a gallery of photos. It's a space where artistic portrait photography, aesthetic style, and personal expression come together.

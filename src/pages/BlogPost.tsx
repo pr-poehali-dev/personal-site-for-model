@@ -32,12 +32,13 @@ export default function BlogPost() {
   const otherPosts = posts.filter((p) => p.id !== post.id).slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen" style={{ backgroundColor: "#f5f0e8" }}>
       {/* Nav */}
-      <nav className="sticky top-0 z-50 px-6 py-5 flex items-center justify-between backdrop-blur-md bg-background/80 border-b border-border">
+      <nav className="sticky top-0 z-50 px-6 py-5 flex items-center justify-between backdrop-blur-sm border-b" style={{ backgroundColor: "rgba(245,240,232,0.9)", borderColor: "#d4c9b0" }}>
         <Link
           to="/blog"
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-2 transition-colors"
+          style={{ color: "#8b7355" }}
         >
           <Icon name="ArrowLeft" size={16} />
           <span className="font-golos text-xs tracking-widest uppercase">Back to Blog</span>
@@ -49,20 +50,20 @@ export default function BlogPost() {
       </nav>
 
       {/* Article */}
-      <article className="max-w-3xl mx-auto px-6 py-16">
+      <article className="max-w-3xl mx-auto px-6 py-16" style={{ color: "#3a2e1e" }}>
         {/* Tag + date */}
         <div className="flex items-center gap-3 mb-6">
-          <span className="text-xs tracking-[0.2em] uppercase px-3 py-1 rounded-full bg-primary/10 text-primary font-golos">
+          <span className="text-xs tracking-[0.2em] uppercase px-3 py-1 rounded-full font-golos" style={{ backgroundColor: "#e8dcc8", color: "#8b6914" }}>
             {post.tag}
           </span>
-          <span className="text-xs text-muted-foreground font-golos">{post.date}</span>
+          <span className="text-xs font-golos" style={{ color: "#9c8b6e" }}>{post.date}</span>
         </div>
 
         {/* Title */}
-        <h1 className="font-cormorant text-4xl md:text-6xl font-light text-foreground leading-tight mb-6">
+        <h1 className="font-cormorant text-4xl md:text-6xl font-light leading-tight mb-6" style={{ color: "#2a1f0e" }}>
           {post.title}
         </h1>
-        <div className="h-px w-16 bg-gradient-to-r from-primary to-transparent mb-10" />
+        <div className="h-px w-16 mb-10" style={{ background: "linear-gradient(to right, #c4a35a, transparent)" }} />
 
         {/* Hero image — Polaroid style */}
         <div className="mb-14 flex justify-center">
@@ -89,10 +90,10 @@ export default function BlogPost() {
 
         {/* Keywords */}
         {post.keywords && (
-          <div className="mt-16 pt-8 border-t border-border">
+          <div className="mt-16 pt-8" style={{ borderTop: "1px solid #d4c9b0" }}>
             <div className="flex flex-wrap gap-2">
               {post.keywords.split(",").map((kw) => (
-                <span key={kw} className="text-xs px-3 py-1 rounded-full bg-muted text-muted-foreground font-golos">
+                <span key={kw} className="text-xs px-3 py-1 rounded-full font-golos" style={{ backgroundColor: "#e8dcc8", color: "#8b7355" }}>
                   {kw.trim()}
                 </span>
               ))}
@@ -104,19 +105,19 @@ export default function BlogPost() {
       {/* More posts */}
       {otherPosts.length > 0 && (
         <section className="max-w-3xl mx-auto px-6 pb-24">
-          <div className="h-px w-full bg-border mb-12" />
-          <p className="font-golos text-xs tracking-[0.4em] uppercase text-muted-foreground mb-8">More stories</p>
+          <div className="h-px w-full mb-12" style={{ backgroundColor: "#d4c9b0" }} />
+          <p className="font-golos text-xs tracking-[0.4em] uppercase mb-8" style={{ color: "#9c8b6e" }}>More stories</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {otherPosts.map((p) => (
               <Link key={p.id} to={`/blog/${p.slug}`} className="group block">
                 <div className="aspect-[4/3] rounded-xl overflow-hidden mb-3">
                   <img src={p.img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 </div>
-                <span className="text-[10px] tracking-widest uppercase text-primary font-golos">{p.tag}</span>
-                <p className="font-cormorant text-lg text-foreground leading-snug mt-1 group-hover:text-primary transition-colors">
+                <span className="text-[10px] tracking-widest uppercase font-golos" style={{ color: "#c4a35a" }}>{p.tag}</span>
+                <p className="font-cormorant text-lg leading-snug mt-1 transition-colors" style={{ color: "#2a1f0e" }}>
                   {p.title}
                 </p>
-                <p className="text-xs text-muted-foreground font-golos mt-1">{p.date}</p>
+                <p className="text-xs font-golos mt-1" style={{ color: "#9c8b6e" }}>{p.date}</p>
               </Link>
             ))}
           </div>
