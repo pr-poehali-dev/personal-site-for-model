@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
+import AuthModal from "@/components/AuthModal";
+import { getToken, getMe, clearToken, hasTier, User } from "@/lib/auth";
 
 const IMG_HERO = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/files/2a3de33c-b05b-4601-920b-5a7396c0b13f.jpg";
 const IMG_ABOUT = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/files/8c29e61e-79ab-4828-9cca-4d1338afb7a3.jpg";
@@ -64,6 +66,10 @@ export default function Index() {
   const [likedPosts, setLikedPosts] = useState<number[]>([]);
   const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" });
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
+  const [user, setUser] = useState<User | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const ringPosRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -107,6 +113,24 @@ export default function Index() {
     return () => obs.disconnect();
   }, []);
 
+  // Load user from saved token on mount
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    getMe(token).then(setUser).catch(() => clearToken());
+  }, []);
+
+  const openAuth = (mode: "login" | "register") => {
+    setAuthMode(mode);
+    setAuthOpen(true);
+  };
+
+  const logout = () => {
+    clearToken();
+    setUser(null);
+    setUserMenuOpen(false);
+  };
+
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
@@ -145,12 +169,66 @@ export default function Index() {
             </li>
           ))}
         </ul>
-        <button
-          onClick={() => scrollTo("subscribe")}
-          className="text-xs tracking-[0.2em] uppercase px-5 py-2 border border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 font-golos"
-        >
-          Subscribe
-        </button>
+        {/* Auth controls */}
+        {user ? (
+          <div className="relative">
+            <button
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className="flex items-center gap-2 text-xs font-golos tracking-wider text-foreground/70 hover:text-foreground transition-colors"
+            >
+              <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
+                <Icon name="User" size={13} className="text-primary" />
+              </div>
+              <span className="hidden md:block">{user.name || user.email.split("@")[0]}</span>
+              <Icon name="ChevronDown" size={13} />
+            </button>
+            {userMenuOpen && (
+              <div className="absolute right-0 top-10 w-52 bg-card border border-border rounded-xl overflow-hidden shadow-xl z-50">
+                <div className="px-4 py-3 border-b border-border">
+                  <p className="text-xs font-golos text-foreground/80 truncate">{user.email}</p>
+                  {user.subscription ? (
+                    <span className="text-[10px] text-primary font-golos uppercase tracking-wider">
+                      {user.subscription.tier === "vip" ? "Full Access" : "Photo Access"}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground font-golos">No active subscription</span>
+                  )}
+                </div>
+                {!user.subscription && (
+                  <button
+                    onClick={() => { setUserMenuOpen(false); scrollTo("subscribe"); }}
+                    className="w-full text-left px-4 py-2.5 text-xs font-golos text-primary hover:bg-primary/10 transition-colors flex items-center gap-2"
+                  >
+                    <Icon name="Star" size={13} />
+                    Get subscription
+                  </button>
+                )}
+                <button
+                  onClick={logout}
+                  className="w-full text-left px-4 py-2.5 text-xs font-golos text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors flex items-center gap-2"
+                >
+                  <Icon name="LogOut" size={13} />
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => openAuth("login")}
+              className="text-xs tracking-wider font-golos text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => openAuth("register")}
+              className="text-xs tracking-[0.2em] uppercase px-5 py-2 border border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 font-golos"
+            >
+              Subscribe
+            </button>
+          </div>
+        )}
       </nav>
 
       {/* ── HERO ── */}
@@ -222,7 +300,7 @@ export default function Index() {
                 <img
                   src={item.img}
                   alt=""
-                  className={`w-full object-cover transition-transform duration-700 group-hover:scale-105 ${item.locked ? "content-locked" : ""}`}
+                  className={`w-full object-cover transition-transform duration-700 group-hover:scale-105 ${item.locked && !hasTier(user, "photo") ? "content-locked" : ""}`}
                   style={{ aspectRatio: i % 3 === 0 ? "3/4" : "4/5" }}
                 />
                 <div className="absolute top-3 left-3">
@@ -230,12 +308,20 @@ export default function Index() {
                     {item.tag}
                   </span>
                 </div>
-                {item.locked && (
+                {item.locked && !hasTier(user, "photo") && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 backdrop-blur-sm">
                     <div className="w-10 h-10 rounded-full border border-primary/40 flex items-center justify-center mb-2 bg-background/60">
                       <Icon name="Lock" size={16} className="text-primary" />
                     </div>
-                    <p className="text-xs font-golos text-primary tracking-wider">VIP Content</p>
+                    {user ? (
+                      <button onClick={() => scrollTo("subscribe")} className="text-xs font-golos text-primary tracking-wider hover:text-primary/80 transition-colors">
+                        Subscribe to unlock
+                      </button>
+                    ) : (
+                      <button onClick={() => openAuth("register")} className="text-xs font-golos text-primary tracking-wider hover:text-primary/80 transition-colors">
+                        Sign in to unlock
+                      </button>
+                    )}
                   </div>
                 )}
                 {!item.locked && (
@@ -526,6 +612,19 @@ export default function Index() {
           © 2026 · For adults 18+ only
         </p>
       </footer>
+
+      {/* ── AUTH MODAL ── */}
+      <AuthModal
+        open={authOpen}
+        defaultMode={authMode}
+        onClose={() => setAuthOpen(false)}
+        onSuccess={(u) => setUser(u)}
+      />
+
+      {/* Close user menu on outside click */}
+      {userMenuOpen && (
+        <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+      )}
     </div>
   );
 }
