@@ -24,8 +24,6 @@ const tiers = [
   {
     name: "Photo Access",
     price: "$9",
-    priceYear: "$90",
-    savingYear: "Save 17%",
     accent: "hsl(var(--muted-foreground))",
     badge: null,
     promo: null,
@@ -41,8 +39,6 @@ const tiers = [
   {
     name: "Full Access",
     price: "$22",
-    priceYear: "$220",
-    savingYear: "Save 17%",
     accent: "hsl(var(--primary))",
     badge: "MOST POPULAR",
     promo: "🔥 First month — $15",
@@ -66,7 +62,7 @@ export default function Index() {
   const [ringPos, setRingPos] = useState({ x: 0, y: 0 });
   const [likedPosts, setLikedPosts] = useState<number[]>([]);
   const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" });
-  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
+
   const [user, setUser] = useState<User | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
@@ -425,32 +421,7 @@ export default function Index() {
             </p>
           </div>
 
-          {/* Billing toggle */}
-          <div className="flex items-center justify-center gap-4 mb-12 scroll-reveal">
-            <button
-              onClick={() => setBilling("monthly")}
-              className={`text-sm font-golos tracking-wider transition-colors duration-200 ${billing === "monthly" ? "text-foreground" : "text-muted-foreground"}`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBilling(billing === "monthly" ? "yearly" : "monthly")}
-              className="relative w-12 h-6 rounded-full border border-primary/40 bg-muted/50 transition-colors duration-200"
-              style={{ background: billing === "yearly" ? "hsl(var(--primary) / 0.2)" : undefined }}
-            >
-              <span
-                className="absolute top-0.5 w-5 h-5 rounded-full bg-primary transition-all duration-300"
-                style={{ left: billing === "yearly" ? "calc(100% - 1.375rem)" : "0.125rem" }}
-              />
-            </button>
-            <button
-              onClick={() => setBilling("yearly")}
-              className={`text-sm font-golos tracking-wider transition-colors duration-200 ${billing === "yearly" ? "text-foreground" : "text-muted-foreground"}`}
-            >
-              Yearly
-              <span className="ml-2 text-[10px] px-2 py-0.5 bg-primary/20 text-primary rounded-full tracking-wider">Save 17%</span>
-            </button>
-          </div>
+
 
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {tiers.map((tier, i) => (
@@ -472,22 +443,16 @@ export default function Index() {
 
                 {/* Price */}
                 <div className="flex items-baseline gap-1 mb-1">
-                  <span className="font-cormorant text-5xl text-foreground">
-                    {billing === "yearly" ? tier.priceYear : tier.price}
-                  </span>
-                  <span className="text-xs font-golos text-muted-foreground">
-                    {billing === "yearly" ? "/yr" : "/mo"}
-                  </span>
+                  <span className="font-cormorant text-5xl text-foreground">{tier.price}</span>
+                  <span className="text-xs font-golos text-muted-foreground">/mo</span>
                 </div>
 
                 {/* Promo */}
-                {tier.promo && billing === "monthly" && (
+                {tier.promo ? (
                   <p className="text-xs font-golos text-accent mb-4 tracking-wide">{tier.promo}</p>
+                ) : (
+                  <div className="mb-4" />
                 )}
-                {billing === "yearly" && (
-                  <p className="text-xs font-golos text-primary/70 mb-4 tracking-wide">≈ {tier.name === "Photo Access" ? "$7.50" : "$18.33"}/mo — {tier.savingYear}</p>
-                )}
-                {!tier.promo && billing === "monthly" && <div className="mb-4" />}
 
                 <div className="h-px bg-border mb-6" />
 
