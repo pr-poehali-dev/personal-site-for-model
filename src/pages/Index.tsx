@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
 import AuthModal from "@/components/AuthModal";
 import { getToken, getMe, clearToken, hasTier, User } from "@/lib/auth";
+import { createInvoice } from "@/lib/payment";
 
 const IMG_HERO = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/files/2a3de33c-b05b-4601-920b-5a7396c0b13f.jpg";
 const IMG_ABOUT = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/files/8c29e61e-79ab-4828-9cca-4d1338afb7a3.jpg";
@@ -70,6 +71,8 @@ export default function Index() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [payLoading, setPayLoading] = useState<string | null>(null);
+  const [payError, setPayError] = useState("");
   const ringPosRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -129,6 +132,25 @@ export default function Index() {
     clearToken();
     setUser(null);
     setUserMenuOpen(false);
+  };
+
+  const handleSubscribe = async (tier: "photo" | "vip") => {
+    setPayError("");
+    if (!user) {
+      openAuth("register");
+      return;
+    }
+    const token = getToken();
+    if (!token) { openAuth("login"); return; }
+    setPayLoading(tier);
+    try {
+      const url = await createInvoice(tier, token);
+      window.open(url, "_blank");
+    } catch (e: unknown) {
+      setPayError(e instanceof Error ? e.message : "Payment error");
+    } finally {
+      setPayLoading(null);
+    }
   };
 
   const scrollTo = (id: string) =>
@@ -486,17 +508,38 @@ export default function Index() {
                 )}
 
                 <button
-                  className={`w-full py-3 text-sm tracking-widest uppercase font-golos transition-all duration-300 rounded ${
+                  onClick={() => handleSubscribe(tier.featured ? "vip" : "photo")}
+                  disabled={payLoading !== null}
+                  className={`w-full py-3 text-sm tracking-widest uppercase font-golos transition-all duration-300 rounded disabled:opacity-60 disabled:cursor-not-allowed ${
                     tier.featured
                       ? "bg-primary text-primary-foreground hover:bg-primary/90 animate-glow-pulse"
                       : "border border-border text-foreground/60 hover:border-primary hover:text-primary"
                   }`}
                 >
-                  {tier.cta}
+                  {payLoading === (tier.featured ? "vip" : "photo") ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Icon name="Loader" size={14} className="animate-spin" />
+                      Redirecting...
+                    </span>
+                  ) : hasTier(user, tier.featured ? "vip" : "photo") ? (
+                    <span className="flex items-center justify-center gap-1.5">
+                      <Icon name="Check" size={14} />
+                      Active
+                    </span>
+                  ) : (
+                    tier.cta
+                  )}
                 </button>
               </div>
             ))}
           </div>
+
+          {payError && (
+            <div className="mt-6 flex items-center justify-center gap-2 text-xs font-golos text-destructive">
+              <Icon name="AlertCircle" size={14} />
+              {payError}
+            </div>
+          )}
         </div>
       </section>
 

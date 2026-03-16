@@ -1,0 +1,39 @@
+{
+  "tests": [
+    {
+      "name": "Create invoice - unauthorized",
+      "method": "POST",
+      "path": "/?action=create",
+      "body": {"tier": "photo", "currency": "USD"},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Status - unauthorized",
+      "method": "GET",
+      "path": "/?action=status",
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Webhook - skip pending event",
+      "method": "POST",
+      "path": "/?action=webhook",
+      "body": {"eventType": "payment.pending", "status": "pending", "buyer": {"email": "test@example.com"}},
+      "expectedStatus": 200,
+      "expectedBody": {"skipped": true},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Webhook - missing email",
+      "method": "POST",
+      "path": "/?action=webhook",
+      "body": {"eventType": "payment.success", "status": "success", "buyer": {}},
+      "expectedStatus": 422,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
