@@ -276,7 +276,7 @@ export default function Index() {
             Welcome to my world
           </p>
           <h1 className="font-cormorant text-7xl md:text-9xl font-light tracking-wide mb-4 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
-            <span className="text-gold-gradient">LUNA</span>
+            <span className="text-gold-gradient">MIA</span>
           </h1>
           <div className="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent mb-6 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }} />
           <p className="font-cormorant italic text-xl md:text-2xl text-foreground/70 mb-10 font-light opacity-0 animate-fade-in-up" style={{ animationDelay: "0.7s", animationFillMode: "forwards" }}>
