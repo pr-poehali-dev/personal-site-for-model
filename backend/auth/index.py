@@ -169,14 +169,14 @@ def handler(event: dict, context) -> dict:
 
     # ── LOGIN ────────────────────────────────────────────────────────────
     if action == "login":
-        email = (body.get("email") or "").strip().lower()
+        email = (body.get("email") or "").strip()
         password = body.get("password") or ""
         if not email or not password:
             return err("Email and password are required")
         conn = get_db()
         cur = conn.cursor()
         cur.execute(
-            f"SELECT id, password_hash, name, role FROM {schema}.users WHERE email = %s",
+            f"SELECT id, password_hash, name, role FROM {schema}.users WHERE lower(email) = lower(%s)",
             (email,)
         )
         row = cur.fetchone()
