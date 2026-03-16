@@ -69,6 +69,7 @@ export default function Index() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [payLoading, setPayLoading] = useState<string | null>(null);
   const [payError, setPayError] = useState("");
+  const [lightbox, setLightbox] = useState<{ imgs: string[]; idx: number } | null>(null);
   const ringPosRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -312,13 +313,17 @@ export default function Index() {
         </div>
 
         <div className="columns-2 md:columns-3 gap-3 space-y-3">
-          {feedItems.map((item, i) => (
+          {feedItems.map((item, i) => {
+            const unlocked = !item.locked || hasTier(user, "photo");
+            const feedImgs = feedItems.filter(f => !f.locked || hasTier(user, "photo")).map(f => f.img);
+            return (
             <div key={item.id} className="break-inside-avoid relative group card-lift rounded-lg overflow-hidden scroll-reveal" style={{ animationDelay: `${i * 0.08}s` }}>
               <div className="relative">
                 <img
                   src={item.img}
                   alt=""
-                  className={`w-full object-cover transition-transform duration-700 group-hover:scale-105 ${item.locked && !hasTier(user, "photo") ? "content-locked" : ""}`}
+                  onClick={() => unlocked && setLightbox({ imgs: feedImgs, idx: feedImgs.indexOf(item.img) })}
+                  className={`w-full object-cover transition-transform duration-700 group-hover:scale-105 ${item.locked && !hasTier(user, "photo") ? "content-locked" : "cursor-pointer"}`}
                   style={{ aspectRatio: i % 3 === 0 ? "3/4" : "4/5" }}
                 />
                 <div className="absolute top-3 left-3">
@@ -342,17 +347,19 @@ export default function Index() {
                     )}
                   </div>
                 )}
-                {!item.locked && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                    <button onClick={() => toggleLike(item.id)} className="flex items-center gap-1.5 text-xs font-golos text-foreground/80">
+                {unlocked && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4">
+                    <button onClick={(e) => { e.stopPropagation(); toggleLike(item.id); }} className="flex items-center gap-1.5 text-xs font-golos text-foreground/80">
                       <Icon name="Heart" size={14} className={likedPosts.includes(item.id) ? "text-accent fill-accent" : "text-foreground/60"} />
                       <span>{item.likes + (likedPosts.includes(item.id) ? 1 : 0)}</span>
                     </button>
+                    <Icon name="Expand" size={14} className="text-foreground/60" />
                   </div>
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -517,10 +524,11 @@ export default function Index() {
         </div>
 
         <div className="grid grid-cols-12 gap-3 scroll-reveal">
-          <div className="col-span-8 relative group overflow-hidden rounded-lg card-lift">
+          <div className="col-span-8 relative group overflow-hidden rounded-lg card-lift cursor-pointer" onClick={() => setLightbox({ imgs: [IMG_HERO, IMG_ABOUT], idx: 0 })}>
             <img src={IMG_HERO} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" style={{ aspectRatio: "4/3" }} />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+            <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-6">
               <span className="font-cormorant italic text-xl text-foreground/90">Editorial Series</span>
+              <Icon name="Expand" size={16} className="text-foreground/60" />
             </div>
           </div>
           <div className="col-span-4 relative group overflow-hidden rounded-lg card-lift">
@@ -532,10 +540,11 @@ export default function Index() {
               </div>
             </div>
           </div>
-          <div className="col-span-4 relative group overflow-hidden rounded-lg card-lift">
+          <div className="col-span-4 relative group overflow-hidden rounded-lg card-lift cursor-pointer" onClick={() => setLightbox({ imgs: [IMG_ABOUT, IMG_HERO], idx: 0 })}>
             <img src={IMG_ABOUT} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" style={{ aspectRatio: "1/1" }} />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+            <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4">
               <span className="font-cormorant italic text-sm text-foreground/90">Moody Portrait</span>
+              <Icon name="Expand" size={14} className="text-foreground/60" />
             </div>
           </div>
           <div className="col-span-8 relative group overflow-hidden rounded-lg card-lift flex items-center justify-center bg-card border border-border">
@@ -632,6 +641,54 @@ export default function Index() {
       {/* Close user menu on outside click */}
       {userMenuOpen && (
         <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+      )}
+
+      {/* ── LIGHTBOX ── */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-background/95 backdrop-blur-md"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            className="absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => setLightbox(null)}
+          >
+            <Icon name="X" size={18} />
+          </button>
+          {lightbox.imgs.length > 1 && (
+            <>
+              <button
+                className="absolute left-5 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground transition-colors"
+                onClick={(e) => { e.stopPropagation(); setLightbox(lb => lb && { ...lb, idx: (lb.idx - 1 + lb.imgs.length) % lb.imgs.length }); }}
+              >
+                <Icon name="ChevronLeft" size={20} />
+              </button>
+              <button
+                className="absolute right-5 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground transition-colors"
+                onClick={(e) => { e.stopPropagation(); setLightbox(lb => lb && { ...lb, idx: (lb.idx + 1) % lb.imgs.length }); }}
+              >
+                <Icon name="ChevronRight" size={20} />
+              </button>
+            </>
+          )}
+          <img
+            src={lightbox.imgs[lightbox.idx]}
+            alt=""
+            className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+          {lightbox.imgs.length > 1 && (
+            <div className="absolute bottom-5 flex gap-2">
+              {lightbox.imgs.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); setLightbox(lb => lb && { ...lb, idx: i }); }}
+                  className={`w-1.5 h-1.5 rounded-full transition-colors ${i === lightbox.idx ? "bg-primary" : "bg-muted-foreground/40"}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
