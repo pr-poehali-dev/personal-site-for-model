@@ -386,7 +386,7 @@ export default function Index() {
         <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-16 items-center">
           <div className="scroll-reveal">
             <div className="relative">
-              <img src={IMG_ABOUT} alt="About" className="w-full rounded-lg object-cover" style={{ aspectRatio: "3/4" }} />
+              <img src="https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/e679c7ed-c2cc-4639-bd7e-ee506913a348.jpg" alt="About" className="w-full rounded-lg object-cover" style={{ aspectRatio: "3/4" }} />
               <div className="absolute inset-0 rounded-lg border border-primary/20" />
               <div className="absolute -bottom-4 -right-4 w-full h-full border border-accent/10 rounded-lg" />
               <div className="absolute bottom-6 left-6 right-6 p-4 bg-background/90 backdrop-blur-md border border-border rounded-lg">
@@ -411,7 +411,7 @@ export default function Index() {
           <div className="scroll-reveal delay-200">
             <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-4">About me</p>
             <h2 className="font-cormorant text-5xl md:text-6xl font-light mb-6">
-              Hi, I'm <span className="text-gold-gradient">Luna</span>
+              Hi, I'm <span className="text-gold-gradient">Mia</span>
             </h2>
             <div className="h-px w-12 bg-gradient-to-r from-primary to-transparent mb-8" />
             <p className="font-golos text-foreground/70 leading-relaxed mb-6 text-sm">
