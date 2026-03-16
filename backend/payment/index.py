@@ -71,6 +71,8 @@ def get_current_user(event: dict):
 def get_tier_from_offer(offer_id: str) -> str:
     if offer_id == os.environ.get("LAVA_OFFER_VIP", "___"):
         return "vip"
+    if offer_id == os.environ.get("LAVA_OFFER_PHOTO", "___"):
+        return "photo"
     return "photo"
 
 
