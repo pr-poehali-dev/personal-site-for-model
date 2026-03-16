@@ -238,6 +238,30 @@ def handler(event: dict, context) -> dict:
             }
         })
 
+    # ── SET PASSWORD (внутренний, защищён секретом) ──────────────────────
+    if action == "set_password":
+        secret_key = (params.get("key") or "")
+        if secret_key != os.environ.get("ADMIN_SETUP_KEY", ""):
+            return err("Forbidden", 403)
+        email = body.get("email", "")
+        password = body.get("password", "")
+        role = body.get("role", "subscriber")
+        if not email or not password:
+            return err("email and password required")
+        ph = hash_password(password)
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE {schema}.users SET password_hash=%s, role=%s WHERE email=%s RETURNING id",
+            (ph, role, email)
+        )
+        row = cur.fetchone()
+        conn.commit()
+        conn.close()
+        if not row:
+            return err("User not found", 404)
+        return ok({"updated": True, "id": row[0]})
+
     # ════════════════════════════════════════════════════════════════════
     # ADMIN ACTIONS — требуют role='admin'
     # ════════════════════════════════════════════════════════════════════
