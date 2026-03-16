@@ -1,6 +1,7 @@
 """
-Auth endpoint: register, login, get current user.
-Action передаётся через queryStringParameters: ?action=register | login | me
+Auth + Admin endpoint.
+?action=register | login | me | google — для пользователей
+?action=admin_stats | admin_users | admin_subscriptions | admin_media | admin_media_upload | admin_media_delete | admin_media_update — только для admin
 """
 import json
 import os
@@ -10,6 +11,7 @@ import base64
 import time
 import urllib.request
 import psycopg2
+import boto3
 
 
 def get_db():
@@ -83,17 +85,24 @@ def get_subscription(user_id: int, schema: str):
 
 CORS = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Authorization",
 }
 
 
-def ok(data: dict, status: int = 200):
-    return {"statusCode": status, "headers": {**CORS, "Content-Type": "application/json"}, "body": json.dumps(data)}
+def ok(data, status: int = 200):
+    return {"statusCode": status, "headers": {**CORS, "Content-Type": "application/json"}, "body": json.dumps(data, default=str)}
 
 
 def err(msg: str, status: int = 400):
     return {"statusCode": status, "headers": {**CORS, "Content-Type": "application/json"}, "body": json.dumps({"error": msg})}
+
+
+def get_token_payload(event):
+    auth = (event.get("headers") or {}).get("X-Authorization", "") or \
+           (event.get("headers") or {}).get("Authorization", "")
+    token = auth.replace("Bearer ", "").strip()
+    return verify_token(token)
 
 
 def handler(event: dict, context) -> dict:
@@ -101,6 +110,7 @@ def handler(event: dict, context) -> dict:
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
     schema = get_schema()
+    method = event.get("httpMethod", "GET")
     params = event.get("queryStringParameters") or {}
     action = params.get("action", "")
 
@@ -110,10 +120,7 @@ def handler(event: dict, context) -> dict:
 
     # ── ME ──────────────────────────────────────────────────────────────
     if action == "me":
-        auth = (event.get("headers") or {}).get("X-Authorization", "") or \
-               (event.get("headers") or {}).get("Authorization", "")
-        token = auth.replace("Bearer ", "").strip()
-        payload = verify_token(token)
+        payload = get_token_payload(event)
         if not payload:
             return err("Unauthorized", 401)
         conn = get_db()
@@ -230,5 +237,159 @@ def handler(event: dict, context) -> dict:
                 "subscription": get_subscription(user_id, schema)
             }
         })
+
+    # ════════════════════════════════════════════════════════════════════
+    # ADMIN ACTIONS — требуют role='admin'
+    # ════════════════════════════════════════════════════════════════════
+    if action.startswith("admin_"):
+        payload = get_token_payload(event)
+        if not payload:
+            return err("Unauthorized", 401)
+        if payload.get("role") != "admin":
+            return err("Forbidden", 403)
+
+        # ── STATS ─────────────────────────────────────────────────────
+        if action == "admin_stats":
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(f"SELECT COUNT(*) FROM {schema}.users")
+            total_users = cur.fetchone()[0]
+            cur.execute(f"SELECT COUNT(*) FROM {schema}.subscriptions WHERE status='active'")
+            active_subs = cur.fetchone()[0]
+            cur.execute(f"SELECT COUNT(*) FROM {schema}.media WHERE is_published=true")
+            total_media = cur.fetchone()[0]
+            conn.close()
+            return ok({"total_users": total_users, "active_subscriptions": active_subs, "total_media": total_media})
+
+        # ── USERS LIST ────────────────────────────────────────────────
+        if action == "admin_users":
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(f"""
+                SELECT u.id, u.email, u.name, u.role, u.created_at,
+                       s.tier, s.status, s.expires_at
+                FROM {schema}.users u
+                LEFT JOIN {schema}.subscriptions s ON s.user_id = u.id AND s.status = 'active'
+                ORDER BY u.created_at DESC
+            """)
+            rows = cur.fetchall()
+            conn.close()
+            users = []
+            for r in rows:
+                users.append({
+                    "id": r[0], "email": r[1], "name": r[2], "role": r[3],
+                    "created_at": str(r[4]),
+                    "subscription": {"tier": r[5], "status": r[6], "expires_at": str(r[7])} if r[5] else None
+                })
+            return ok({"users": users, "total": len(users)})
+
+        # ── SUBSCRIPTIONS LIST ────────────────────────────────────────
+        if action == "admin_subscriptions":
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(f"""
+                SELECT s.id, s.user_id, u.email, u.name, s.tier, s.status, s.started_at, s.expires_at, s.created_at
+                FROM {schema}.subscriptions s
+                JOIN {schema}.users u ON u.id = s.user_id
+                ORDER BY s.created_at DESC
+            """)
+            rows = cur.fetchall()
+            conn.close()
+            subs = []
+            for r in rows:
+                subs.append({
+                    "id": r[0], "user_id": r[1], "email": r[2], "name": r[3],
+                    "tier": r[4], "status": r[5],
+                    "started_at": str(r[6]), "expires_at": str(r[7]), "created_at": str(r[8])
+                })
+            return ok({"subscriptions": subs, "total": len(subs)})
+
+        # ── MEDIA LIST ────────────────────────────────────────────────
+        if action == "admin_media" and method == "GET":
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(f"""
+                SELECT id, title, description, type, url, thumbnail_url, tier, is_published, sort_order, created_at
+                FROM {schema}.media
+                ORDER BY sort_order ASC, created_at DESC
+            """)
+            rows = cur.fetchall()
+            conn.close()
+            items = []
+            for r in rows:
+                items.append({
+                    "id": r[0], "title": r[1], "description": r[2], "type": r[3],
+                    "url": r[4], "thumbnail_url": r[5], "tier": r[6],
+                    "is_published": r[7], "sort_order": r[8], "created_at": str(r[9])
+                })
+            return ok({"media": items, "total": len(items)})
+
+        # ── MEDIA UPLOAD ──────────────────────────────────────────────
+        if action == "admin_media_upload" and method == "POST":
+            file_data = body.get("file")
+            filename = body.get("filename", "upload.jpg")
+            content_type = body.get("content_type", "image/jpeg")
+            title = body.get("title", "")
+            description = body.get("description", "")
+            media_type = body.get("type", "photo")
+            tier = body.get("tier", "free")
+
+            if not file_data:
+                return err("No file data provided")
+
+            raw = base64.b64decode(file_data)
+            ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+            key = f"media/{int(time.time())}_{hashlib.md5(raw).hexdigest()[:8]}.{ext}"
+
+            s3 = boto3.client(
+                "s3",
+                endpoint_url="https://bucket.poehali.dev",
+                aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+                aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+            )
+            s3.put_object(Bucket="files", Key=key, Body=raw, ContentType=content_type)
+            cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(
+                f"INSERT INTO {schema}.media (title, description, type, url, tier) VALUES (%s, %s, %s, %s, %s) RETURNING id",
+                (title or None, description or None, media_type, cdn_url, tier)
+            )
+            new_id = cur.fetchone()[0]
+            conn.commit()
+            conn.close()
+
+            return ok({"id": new_id, "url": cdn_url}, 201)
+
+        # ── MEDIA UPDATE ──────────────────────────────────────────────
+        if action == "admin_media_update" and method == "PUT":
+            media_id = body.get("id")
+            if not media_id:
+                return err("id required")
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(
+                f"UPDATE {schema}.media SET title=%s, description=%s, tier=%s, is_published=%s, sort_order=%s WHERE id=%s",
+                (body.get("title"), body.get("description"), body.get("tier", "free"),
+                 body.get("is_published", True), body.get("sort_order", 0), int(media_id))
+            )
+            conn.commit()
+            conn.close()
+            return ok({"updated": True})
+
+        # ── MEDIA DELETE ──────────────────────────────────────────────
+        if action == "admin_media_delete" and method == "DELETE":
+            media_id = params.get("id")
+            if not media_id:
+                return err("id required")
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(f"DELETE FROM {schema}.media WHERE id = %s", (int(media_id),))
+            conn.commit()
+            conn.close()
+            return ok({"deleted": True})
+
+        return err("Unknown admin action", 404)
 
     return err("Unknown action. Use ?action=register|login|me|google", 404)
