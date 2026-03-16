@@ -19,28 +19,41 @@ const feedItems = [
 
 const tiers = [
   {
-    name: "Fan",
-    price: "$5",
-    period: "per month",
+    name: "Photo Access",
+    price: "$9",
+    priceYear: "$90",
+    savingYear: "Save 17%",
     accent: "hsl(var(--muted-foreground))",
-    features: ["Public feed access", "DM auto-reply", "Weekly exclusive post"],
+    badge: null,
+    promo: null,
+    features: [
+      "Uncensored 18+ photo sets",
+      "Weekly exclusive photos",
+      "Access to all public content",
+      "Basic personal shots",
+    ],
     featured: false,
+    cta: "Get Photos",
   },
   {
-    name: "VIP",
-    price: "$15",
-    period: "per month",
+    name: "Full Access",
+    price: "$22",
+    priceYear: "$220",
+    savingYear: "Save 17%",
     accent: "hsl(var(--primary))",
-    features: ["Everything in Fan", "Unlocked 18+ content", "Personal photos", "Priority replies"],
+    badge: "MOST POPULAR",
+    promo: "🔥 First month — $15",
+    features: [
+      "Everything in Photo Access",
+      "Full video content library",
+      "Daily photo + video updates",
+      "Priority DMs on Telegram & Instagram",
+      "Exclusive private videos & sets",
+      "Custom content on request",
+    ],
+    vipNote: "Want to connect personally? VIP members get priority replies on Telegram & Instagram — faster & closer 😈",
     featured: true,
-  },
-  {
-    name: "Premium",
-    price: "$40",
-    period: "per month",
-    accent: "hsl(var(--accent))",
-    features: ["Everything in VIP", "Exclusive private sets", "Video content", "15 min video call/mo"],
-    featured: false,
+    cta: "Get Full Access",
   },
 ];
 
@@ -50,6 +63,7 @@ export default function Index() {
   const [ringPos, setRingPos] = useState({ x: 0, y: 0 });
   const [likedPosts, setLikedPosts] = useState<number[]>([]);
   const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" });
+  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const ringPosRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -293,37 +307,83 @@ export default function Index() {
         <div className="absolute inset-0 opacity-5" style={{ backgroundImage: `url(${IMG_TEXTURE})`, backgroundSize: "cover" }} />
         <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
 
-        <div className="relative max-w-5xl mx-auto">
-          <div className="text-center mb-16 scroll-reveal">
+        <div className="relative max-w-4xl mx-auto">
+          <div className="text-center mb-6 scroll-reveal">
             <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-3">Content access</p>
             <h2 className="font-cormorant text-5xl md:text-6xl font-light text-gold-gradient">Subscribe</h2>
-            <div className="h-px w-16 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent mt-4" />
-            <p className="font-golos text-sm text-muted-foreground mt-4 max-w-md mx-auto">
-              Choose your access level and unlock my exclusive world
+            <div className="h-px w-16 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent mt-4 mb-5" />
+            <p className="font-golos text-sm text-foreground/70 max-w-lg mx-auto leading-relaxed">
+              Choose your level: photos for <span className="text-primary font-medium">$9</span> or full access with personal Telegram & Instagram DMs for <span className="text-primary font-medium">$22</span> 🔥
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          {/* Billing toggle */}
+          <div className="flex items-center justify-center gap-4 mb-12 scroll-reveal">
+            <button
+              onClick={() => setBilling("monthly")}
+              className={`text-sm font-golos tracking-wider transition-colors duration-200 ${billing === "monthly" ? "text-foreground" : "text-muted-foreground"}`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBilling(billing === "monthly" ? "yearly" : "monthly")}
+              className="relative w-12 h-6 rounded-full border border-primary/40 bg-muted/50 transition-colors duration-200"
+              style={{ background: billing === "yearly" ? "hsl(var(--primary) / 0.2)" : undefined }}
+            >
+              <span
+                className="absolute top-0.5 w-5 h-5 rounded-full bg-primary transition-all duration-300"
+                style={{ left: billing === "yearly" ? "calc(100% - 1.375rem)" : "0.125rem" }}
+              />
+            </button>
+            <button
+              onClick={() => setBilling("yearly")}
+              className={`text-sm font-golos tracking-wider transition-colors duration-200 ${billing === "yearly" ? "text-foreground" : "text-muted-foreground"}`}
+            >
+              Yearly
+              <span className="ml-2 text-[10px] px-2 py-0.5 bg-primary/20 text-primary rounded-full tracking-wider">Save 17%</span>
+            </button>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {tiers.map((tier, i) => (
               <div
                 key={tier.name}
-                className={`tier-card scroll-reveal rounded-xl p-8 border-gold-glow bg-card ${tier.featured ? "tier-featured border-primary/40 md:-mt-4 md:mb-4 md:scale-105" : ""}`}
+                className={`tier-card scroll-reveal rounded-xl p-8 border-gold-glow bg-card relative ${tier.featured ? "tier-featured border-primary/40 md:scale-105" : ""}`}
                 style={{ animationDelay: `${i * 0.15}s` }}
               >
-                {tier.featured && (
-                  <div className="text-center mb-4">
-                    <span className="text-[10px] tracking-[0.3em] uppercase font-golos px-4 py-1 bg-primary/20 text-primary rounded-full">
-                      Most popular
+                {/* Badge */}
+                {tier.badge && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="text-[10px] tracking-[0.25em] uppercase font-golos px-5 py-1.5 bg-primary text-primary-foreground rounded-full shadow-lg">
+                      {tier.badge}
                     </span>
                   </div>
                 )}
-                <h3 className="font-cormorant text-3xl font-light mb-1" style={{ color: tier.accent }}>{tier.name}</h3>
-                <div className="flex items-baseline gap-1 mb-6">
-                  <span className="font-cormorant text-4xl text-foreground">{tier.price}</span>
-                  <span className="text-xs font-golos text-muted-foreground">/mo</span>
+
+                <h3 className="font-cormorant text-3xl font-light mb-1 mt-2" style={{ color: tier.accent }}>{tier.name}</h3>
+
+                {/* Price */}
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="font-cormorant text-5xl text-foreground">
+                    {billing === "yearly" ? tier.priceYear : tier.price}
+                  </span>
+                  <span className="text-xs font-golos text-muted-foreground">
+                    {billing === "yearly" ? "/yr" : "/mo"}
+                  </span>
                 </div>
+
+                {/* Promo */}
+                {tier.promo && billing === "monthly" && (
+                  <p className="text-xs font-golos text-accent mb-4 tracking-wide">{tier.promo}</p>
+                )}
+                {billing === "yearly" && (
+                  <p className="text-xs font-golos text-primary/70 mb-4 tracking-wide">≈ {tier.name === "Photo Access" ? "$7.50" : "$18.33"}/mo — {tier.savingYear}</p>
+                )}
+                {!tier.promo && billing === "monthly" && <div className="mb-4" />}
+
                 <div className="h-px bg-border mb-6" />
-                <ul className="space-y-3 mb-8">
+
+                <ul className="space-y-3 mb-6">
                   {tier.features.map((f) => (
                     <li key={f} className="flex items-start gap-2 text-sm font-golos text-foreground/70">
                       <Icon name="Check" size={14} className="text-primary mt-0.5 shrink-0" />
@@ -331,6 +391,14 @@ export default function Index() {
                     </li>
                   ))}
                 </ul>
+
+                {/* VIP note */}
+                {"vipNote" in tier && tier.vipNote && (
+                  <p className="text-xs font-golos text-muted-foreground/70 italic leading-relaxed mb-6 border-l-2 border-primary/30 pl-3">
+                    {tier.vipNote}
+                  </p>
+                )}
+
                 <button
                   className={`w-full py-3 text-sm tracking-widest uppercase font-golos transition-all duration-300 rounded ${
                     tier.featured
@@ -338,7 +406,7 @@ export default function Index() {
                       : "border border-border text-foreground/60 hover:border-primary hover:text-primary"
                   }`}
                 >
-                  Get Access
+                  {tier.cta}
                 </button>
               </div>
             ))}
