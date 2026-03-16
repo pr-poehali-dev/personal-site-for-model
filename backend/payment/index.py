@@ -169,6 +169,17 @@ def handler(event: dict, context) -> dict:
 
     # ── WEBHOOK (called by Lava.top after payment) ──────────────────────
     if action == "webhook":
+        # Verify Basic Auth
+        auth_header = (event.get("headers") or {}).get("Authorization", "") or \
+                      (event.get("headers") or {}).get("authorization", "")
+        expected_login = os.environ.get("WEBHOOK_LOGIN", "")
+        expected_password = os.environ.get("WEBHOOK_PASSWORD", "")
+        if expected_login and expected_password:
+            expected_b64 = base64.b64encode(f"{expected_login}:{expected_password}".encode()).decode()
+            provided = auth_header.replace("Basic ", "").strip()
+            if not hmac.compare_digest(provided, expected_b64):
+                return err("Unauthorized", 401)
+
         raw = event.get("body") or ""
         if not raw:
             return err("Empty body", 400)
