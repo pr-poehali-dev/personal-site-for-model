@@ -173,7 +173,12 @@ export default function Index() {
 
       {/* ── NAV ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between backdrop-blur-md bg-background/70 border-b border-border">
-        <div className="font-cormorant text-2xl font-light tracking-[0.3em] text-gold-gradient">LUNA</div>
+        <div className="flex items-center gap-1.5">
+          <span className="font-cormorant text-2xl font-light tracking-[0.2em] text-gold-gradient">Mia Rey</span>
+          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground" title="Verified">
+            <Icon name="Check" size={11} />
+          </span>
+        </div>
         <ul className="hidden md:flex gap-8">
           {navLinks.map((l) => (
             <li key={l.id}>
