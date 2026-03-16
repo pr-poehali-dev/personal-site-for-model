@@ -268,33 +268,24 @@ export default function Index() {
       </nav>
 
       {/* ── HERO ── */}
-      <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div
-          className="absolute inset-0 scale-110"
-          style={{
-            backgroundImage: `url(${IMG_HERO})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center 35%",
-            transform: `scale(1.1) translateY(${mousePos.y * 0.015}px)`,
-            transition: "transform 0.1s linear",
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/30 to-background" />
+      <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
+        <div className="absolute inset-0 bg-background" />
         <div className="absolute top-1/3 left-1/4 w-64 h-64 rounded-full bg-primary/5 blur-3xl animate-float" />
-        <div className="absolute bottom-1/3 right-1/4 w-48 h-48 rounded-full bg-accent/5 blur-3xl animate-float delay-300" />
+        <div className="absolute bottom-1/3 right-1/3 w-48 h-48 rounded-full bg-accent/5 blur-3xl animate-float delay-300" />
 
-        <div className="relative z-10 text-center px-6">
+        {/* Текст слева */}
+        <div className="relative z-10 flex-1 flex flex-col justify-center px-12 md:px-24 py-24">
           <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-6 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
             Welcome to my world
           </p>
           <h1 className="font-cormorant text-7xl md:text-9xl font-light tracking-wide mb-4 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
             <span className="text-gold-gradient">MIA</span>
           </h1>
-          <div className="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent mb-6 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }} />
+          <div className="h-px w-24 bg-gradient-to-r from-transparent via-primary to-transparent mb-6 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }} />
           <p className="font-cormorant italic text-xl md:text-2xl text-foreground/70 mb-10 font-light opacity-0 animate-fade-in-up" style={{ animationDelay: "0.7s", animationFillMode: "forwards" }}>
             Art. Beauty. Desire.
           </p>
-          <div className="flex gap-4 justify-center opacity-0 animate-fade-in-up" style={{ animationDelay: "0.9s", animationFillMode: "forwards" }}>
+          <div className="flex gap-4 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.9s", animationFillMode: "forwards" }}>
             <button onClick={() => scrollTo("feed")} className="px-8 py-3 bg-primary text-primary-foreground text-sm tracking-widest uppercase font-golos hover:bg-primary/90 transition-all duration-300 animate-glow-pulse">
               View Feed
             </button>
@@ -302,6 +293,18 @@ export default function Index() {
               Subscribe
             </button>
           </div>
+        </div>
+
+        {/* Фото справа */}
+        <div className="relative z-10 h-screen w-[45vw] flex-shrink-0 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
+          <img
+            src={IMG_HERO}
+            alt="Mia Rey"
+            className="h-full w-full object-cover object-center"
+            style={{ transform: `translateY(${mousePos.y * 0.01}px)`, transition: "transform 0.1s linear" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background/60" />
         </div>
 
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground/50">
