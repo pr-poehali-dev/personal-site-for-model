@@ -6,40 +6,40 @@ const IMG_ABOUT = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22
 const IMG_TEXTURE = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/files/2b5eac32-ce1c-404e-94cc-4a15436f038e.jpg";
 
 const feedItems = [
-  { id: 1, img: IMG_HERO, likes: 1284, locked: false, tag: "Арт" },
-  { id: 2, img: IMG_TEXTURE, likes: 2091, locked: false, tag: "Фото" },
+  { id: 1, img: IMG_HERO, likes: 1284, locked: false, tag: "Art" },
+  { id: 2, img: IMG_TEXTURE, likes: 2091, locked: false, tag: "Photo" },
   { id: 3, img: IMG_ABOUT, likes: 3540, locked: true, tag: "18+" },
-  { id: 4, img: IMG_HERO, likes: 892, locked: true, tag: "Приват" },
-  { id: 5, img: IMG_TEXTURE, likes: 1750, locked: false, tag: "Арт" },
+  { id: 4, img: IMG_HERO, likes: 892, locked: true, tag: "Private" },
+  { id: 5, img: IMG_TEXTURE, likes: 1750, locked: false, tag: "Art" },
   { id: 6, img: IMG_ABOUT, likes: 4120, locked: true, tag: "18+" },
-  { id: 7, img: IMG_HERO, likes: 660, locked: false, tag: "Фото" },
-  { id: 8, img: IMG_TEXTURE, likes: 3300, locked: true, tag: "Приват" },
-  { id: 9, img: IMG_ABOUT, likes: 2870, locked: false, tag: "Арт" },
+  { id: 7, img: IMG_HERO, likes: 660, locked: false, tag: "Photo" },
+  { id: 8, img: IMG_TEXTURE, likes: 3300, locked: true, tag: "Private" },
+  { id: 9, img: IMG_ABOUT, likes: 2870, locked: false, tag: "Art" },
 ];
 
 const tiers = [
   {
     name: "Fan",
-    price: "490 ₽",
-    period: "в месяц",
+    price: "$5",
+    period: "per month",
     accent: "hsl(var(--muted-foreground))",
-    features: ["Открытая лента", "DM с автоответом", "Еженедельный пост"],
+    features: ["Public feed access", "DM auto-reply", "Weekly exclusive post"],
     featured: false,
   },
   {
     name: "VIP",
-    price: "1 490 ₽",
-    period: "в месяц",
+    price: "$15",
+    period: "per month",
     accent: "hsl(var(--primary))",
-    features: ["Всё из Fan", "Закрытый контент 18+", "Персональные фото", "Приоритет в ответах"],
+    features: ["Everything in Fan", "Unlocked 18+ content", "Personal photos", "Priority replies"],
     featured: true,
   },
   {
     name: "Premium",
-    price: "3 990 ₽",
-    period: "в месяц",
+    price: "$40",
+    period: "per month",
     accent: "hsl(var(--accent))",
-    features: ["Всё из VIP", "Эксклюзивный приват", "Видео-контент", "Видеозвонок 15 мин/мес"],
+    features: ["Everything in VIP", "Exclusive private sets", "Video content", "15 min video call/mo"],
     featured: false,
   },
 ];
@@ -100,12 +100,12 @@ export default function Index() {
     setLikedPosts((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
 
   const navLinks = [
-    { id: "home", label: "Главная" },
-    { id: "feed", label: "Лента" },
-    { id: "about", label: "Обо мне" },
-    { id: "subscribe", label: "Подписка" },
-    { id: "gallery", label: "Галерея" },
-    { id: "contact", label: "Контакты" },
+    { id: "home", label: "Home" },
+    { id: "feed", label: "Feed" },
+    { id: "about", label: "About" },
+    { id: "subscribe", label: "Subscribe" },
+    { id: "gallery", label: "Gallery" },
+    { id: "contact", label: "Contact" },
   ];
 
   return (
@@ -135,7 +135,7 @@ export default function Index() {
           onClick={() => scrollTo("subscribe")}
           className="text-xs tracking-[0.2em] uppercase px-5 py-2 border border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 font-golos"
         >
-          Подписаться
+          Subscribe
         </button>
       </nav>
 
@@ -157,7 +157,7 @@ export default function Index() {
 
         <div className="relative z-10 text-center px-6">
           <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-6 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
-            Добро пожаловать в мой мир
+            Welcome to my world
           </p>
           <h1 className="font-cormorant text-7xl md:text-9xl font-light tracking-wide mb-4 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
             <span className="text-gold-gradient">LUNA</span>
@@ -168,16 +168,16 @@ export default function Index() {
           </p>
           <div className="flex gap-4 justify-center opacity-0 animate-fade-in-up" style={{ animationDelay: "0.9s", animationFillMode: "forwards" }}>
             <button onClick={() => scrollTo("feed")} className="px-8 py-3 bg-primary text-primary-foreground text-sm tracking-widest uppercase font-golos hover:bg-primary/90 transition-all duration-300 animate-glow-pulse">
-              Смотреть ленту
+              View Feed
             </button>
             <button onClick={() => scrollTo("subscribe")} className="px-8 py-3 border border-foreground/20 text-foreground/70 text-sm tracking-widest uppercase font-golos hover:border-primary hover:text-primary transition-all duration-300">
-              Подписаться
+              Subscribe
             </button>
           </div>
         </div>
 
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground/50">
-          <span className="text-xs tracking-widest uppercase font-golos">Листай</span>
+          <span className="text-xs tracking-widest uppercase font-golos">Scroll</span>
           <div className="w-px h-12 bg-gradient-to-b from-muted-foreground/30 to-transparent" />
         </div>
       </section>
@@ -187,7 +187,7 @@ export default function Index() {
         <div className="flex animate-marquee whitespace-nowrap">
           {Array(4).fill(null).map((_, i) => (
             <span key={i} className="font-cormorant italic text-sm text-muted-foreground/60 mx-8 tracking-widest">
-              ✦ Эксклюзивный контент &nbsp; ✦ Личные фотографии &nbsp; ✦ VIP подписка &nbsp; ✦ Приватные видео &nbsp; ✦ Ежедневные обновления &nbsp;
+              ✦ Exclusive content &nbsp; ✦ Personal photos &nbsp; ✦ VIP subscription &nbsp; ✦ Private videos &nbsp; ✦ Daily updates &nbsp;
             </span>
           ))}
         </div>
@@ -196,8 +196,8 @@ export default function Index() {
       {/* ── FEED ── */}
       <section id="feed" className="py-24 px-6 max-w-5xl mx-auto">
         <div className="text-center mb-16 scroll-reveal">
-          <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-3">Свежее</p>
-          <h2 className="font-cormorant text-5xl md:text-6xl font-light text-gold-gradient">Лента</h2>
+          <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-3">Latest</p>
+          <h2 className="font-cormorant text-5xl md:text-6xl font-light text-gold-gradient">Feed</h2>
           <div className="h-px w-16 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent mt-4" />
         </div>
 
@@ -221,7 +221,7 @@ export default function Index() {
                     <div className="w-10 h-10 rounded-full border border-primary/40 flex items-center justify-center mb-2 bg-background/60">
                       <Icon name="Lock" size={16} className="text-primary" />
                     </div>
-                    <p className="text-xs font-golos text-primary tracking-wider">VIP контент</p>
+                    <p className="text-xs font-golos text-primary tracking-wider">VIP Content</p>
                   </div>
                 )}
                 {!item.locked && (
@@ -250,15 +250,15 @@ export default function Index() {
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
                     <p className="font-cormorant text-2xl text-gold-gradient">12K+</p>
-                    <p className="text-[10px] font-golos text-muted-foreground uppercase tracking-wider">Подписчиков</p>
+                    <p className="text-[10px] font-golos text-muted-foreground uppercase tracking-wider">Followers</p>
                   </div>
                   <div className="border-x border-border">
                     <p className="font-cormorant text-2xl text-gold-gradient">340+</p>
-                    <p className="text-[10px] font-golos text-muted-foreground uppercase tracking-wider">Фотографий</p>
+                    <p className="text-[10px] font-golos text-muted-foreground uppercase tracking-wider">Photos</p>
                   </div>
                   <div>
-                    <p className="font-cormorant text-2xl text-gold-gradient">4 года</p>
-                    <p className="text-[10px] font-golos text-muted-foreground uppercase tracking-wider">Опыта</p>
+                    <p className="font-cormorant text-2xl text-gold-gradient">4 yrs</p>
+                    <p className="text-[10px] font-golos text-muted-foreground uppercase tracking-wider">Experience</p>
                   </div>
                 </div>
               </div>
@@ -266,16 +266,16 @@ export default function Index() {
           </div>
 
           <div className="scroll-reveal delay-200">
-            <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-4">Обо мне</p>
+            <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-4">About me</p>
             <h2 className="font-cormorant text-5xl md:text-6xl font-light mb-6">
-              Привет, я <span className="text-gold-gradient">Luna</span>
+              Hi, I'm <span className="text-gold-gradient">Luna</span>
             </h2>
             <div className="h-px w-12 bg-gradient-to-r from-primary to-transparent mb-8" />
             <p className="font-golos text-foreground/70 leading-relaxed mb-6 text-sm">
-              Я художник своего тела и своих образов. Каждый снимок — это история, каждый кадр — произведение искусства. Я верю в красоту без компромиссов и свободу самовыражения.
+              I'm an artist of my body and my image. Every shot is a story, every frame — a work of art. I believe in beauty without compromise and freedom of self-expression.
             </p>
             <p className="font-golos text-foreground/50 leading-relaxed mb-10 text-sm">
-              Здесь я делюсь эксклюзивным контентом, который не найти нигде больше. Подписывайся — и стань частью моего мира.
+              Here I share exclusive content you won't find anywhere else. Subscribe and become part of my world.
             </p>
             <div className="flex gap-6">
               {["Instagram", "Telegram", "OnlyFans"].map((s) => (
@@ -295,11 +295,11 @@ export default function Index() {
 
         <div className="relative max-w-5xl mx-auto">
           <div className="text-center mb-16 scroll-reveal">
-            <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-3">Доступ к контенту</p>
-            <h2 className="font-cormorant text-5xl md:text-6xl font-light text-gold-gradient">Подписка</h2>
+            <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-3">Content access</p>
+            <h2 className="font-cormorant text-5xl md:text-6xl font-light text-gold-gradient">Subscribe</h2>
             <div className="h-px w-16 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent mt-4" />
             <p className="font-golos text-sm text-muted-foreground mt-4 max-w-md mx-auto">
-              Выбери уровень доступа и открой мой эксклюзивный мир
+              Choose your access level and unlock my exclusive world
             </p>
           </div>
 
@@ -313,14 +313,14 @@ export default function Index() {
                 {tier.featured && (
                   <div className="text-center mb-4">
                     <span className="text-[10px] tracking-[0.3em] uppercase font-golos px-4 py-1 bg-primary/20 text-primary rounded-full">
-                      Популярный
+                      Most popular
                     </span>
                   </div>
                 )}
                 <h3 className="font-cormorant text-3xl font-light mb-1" style={{ color: tier.accent }}>{tier.name}</h3>
                 <div className="flex items-baseline gap-1 mb-6">
                   <span className="font-cormorant text-4xl text-foreground">{tier.price}</span>
-                  <span className="text-xs font-golos text-muted-foreground">/мес</span>
+                  <span className="text-xs font-golos text-muted-foreground">/mo</span>
                 </div>
                 <div className="h-px bg-border mb-6" />
                 <ul className="space-y-3 mb-8">
@@ -338,7 +338,7 @@ export default function Index() {
                       : "border border-border text-foreground/60 hover:border-primary hover:text-primary"
                   }`}
                 >
-                  Выбрать
+                  Get Access
                 </button>
               </div>
             ))}
@@ -349,8 +349,8 @@ export default function Index() {
       {/* ── GALLERY ── */}
       <section id="gallery" className="py-24 px-6 max-w-5xl mx-auto">
         <div className="text-center mb-16 scroll-reveal">
-          <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-3">Коллекция</p>
-          <h2 className="font-cormorant text-5xl md:text-6xl font-light text-gold-gradient">Галерея</h2>
+          <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-3">Collection</p>
+          <h2 className="font-cormorant text-5xl md:text-6xl font-light text-gold-gradient">Gallery</h2>
           <div className="h-px w-16 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent mt-4" />
         </div>
 
@@ -379,10 +379,10 @@ export default function Index() {
           <div className="col-span-8 relative group overflow-hidden rounded-lg card-lift flex items-center justify-center bg-card border border-border">
             <div className="text-center p-8">
               <p className="font-cormorant text-6xl text-gold-gradient mb-2">340+</p>
-              <p className="font-golos text-xs uppercase tracking-widest text-muted-foreground">фотографий в архиве</p>
+              <p className="font-golos text-xs uppercase tracking-widest text-muted-foreground">photos in archive</p>
               <div className="h-px w-12 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent my-4" />
               <button onClick={() => scrollTo("subscribe")} className="text-xs font-golos tracking-wider text-primary hover:text-primary/80 transition-colors duration-200 nav-link pb-0.5">
-                Открыть доступ →
+                Unlock access →
               </button>
             </div>
           </div>
@@ -392,20 +392,20 @@ export default function Index() {
       {/* ── CONTACT ── */}
       <section id="contact" className="py-24 px-6">
         <div className="max-w-2xl mx-auto text-center scroll-reveal">
-          <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-3">Написать мне</p>
-          <h2 className="font-cormorant text-5xl md:text-6xl font-light text-gold-gradient mb-4">Контакты</h2>
+          <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-3">Get in touch</p>
+          <h2 className="font-cormorant text-5xl md:text-6xl font-light text-gold-gradient mb-4">Contact</h2>
           <div className="h-px w-16 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent mb-12" />
 
           <form onSubmit={(e) => e.preventDefault()} className="space-y-4 text-left">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-golos uppercase tracking-widest text-muted-foreground mb-2">Имя</label>
+                <label className="block text-xs font-golos uppercase tracking-widest text-muted-foreground mb-2">Name</label>
                 <input
                   type="text"
                   value={contactForm.name}
                   onChange={(e) => setContactForm((p) => ({ ...p, name: e.target.value }))}
                   className="w-full bg-muted/50 border border-border rounded px-4 py-3 font-golos text-sm text-foreground placeholder-muted-foreground/50 focus:outline-none focus:border-primary transition-colors duration-200"
-                  placeholder="Твоё имя"
+                  placeholder="Your name"
                 />
               </div>
               <div>
@@ -420,18 +420,18 @@ export default function Index() {
               </div>
             </div>
             <div>
-              <label className="block text-xs font-golos uppercase tracking-widest text-muted-foreground mb-2">Сообщение</label>
+              <label className="block text-xs font-golos uppercase tracking-widest text-muted-foreground mb-2">Message</label>
               <textarea
                 rows={5}
                 value={contactForm.message}
                 onChange={(e) => setContactForm((p) => ({ ...p, message: e.target.value }))}
                 className="w-full bg-muted/50 border border-border rounded px-4 py-3 font-golos text-sm text-foreground placeholder-muted-foreground/50 focus:outline-none focus:border-primary transition-colors duration-200 resize-none"
-                placeholder="Привет, Luna..."
+                placeholder="Hey Luna..."
               />
             </div>
             <div className="text-center pt-4">
               <button type="submit" className="px-12 py-3 bg-primary text-primary-foreground text-sm tracking-widest uppercase font-golos hover:bg-primary/90 transition-all duration-300">
-                Отправить
+                Send Message
               </button>
             </div>
           </form>
@@ -455,7 +455,7 @@ export default function Index() {
       <footer className="border-t border-border py-8 px-6 text-center">
         <p className="font-cormorant text-2xl tracking-[0.4em] text-gold-gradient mb-2">LUNA</p>
         <p className="font-golos text-xs text-muted-foreground/40 tracking-wider">
-          © 2026 · Сайт предназначен для лиц 18+
+          © 2026 · For adults 18+ only
         </p>
       </footer>
     </div>
