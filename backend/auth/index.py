@@ -11,7 +11,6 @@ import base64
 import time
 import urllib.request
 import psycopg2
-import boto3
 
 
 def get_db():
@@ -365,6 +364,7 @@ def handler(event: dict, context) -> dict:
             ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
             key = f"media/{int(time.time())}_{hashlib.md5(raw).hexdigest()[:8]}.{ext}"
 
+            import boto3
             s3 = boto3.client(
                 "s3",
                 endpoint_url="https://bucket.poehali.dev",
