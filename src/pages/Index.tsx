@@ -615,7 +615,7 @@ export default function Index() {
                 value={contactForm.message}
                 onChange={(e) => setContactForm((p) => ({ ...p, message: e.target.value }))}
                 className="w-full bg-muted/50 border border-border rounded px-4 py-3 font-golos text-sm text-foreground placeholder-muted-foreground/50 focus:outline-none focus:border-primary transition-colors duration-200 resize-none"
-                placeholder="Hey Luna..."
+                placeholder="Hey Mia..."
               />
             </div>
             <div className="text-center pt-4">
@@ -791,7 +791,7 @@ export default function Index() {
 
       {/* ── FOOTER ── */}
       <footer className="border-t border-border py-8 px-6 text-center">
-        <p className="font-cormorant text-2xl tracking-[0.4em] text-gold-gradient mb-2">LUNA</p>
+        <p className="font-cormorant text-2xl tracking-[0.4em] text-gold-gradient mb-2">Mia Rey</p>
         <p className="font-golos text-xs text-muted-foreground/40 tracking-wider">
           © 2026 · For adults 18+ only
         </p>
