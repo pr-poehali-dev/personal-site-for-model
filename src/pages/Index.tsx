@@ -5,7 +5,7 @@ import AuthModal from "@/components/AuthModal";
 import { getToken, getMe, clearToken, hasTier, User } from "@/lib/auth";
 import { createInvoice } from "@/lib/payment";
 
-const IMG_HERO = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/files/2a3de33c-b05b-4601-920b-5a7396c0b13f.jpg";
+const IMG_HERO = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/bccf737b-8f5b-42a2-9a41-331473009369.jpg";
 const IMG_ABOUT = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/files/8c29e61e-79ab-4828-9cca-4d1338afb7a3.jpg";
 const IMG_TEXTURE = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/files/2b5eac32-ce1c-404e-94cc-4a15436f038e.jpg";
 
