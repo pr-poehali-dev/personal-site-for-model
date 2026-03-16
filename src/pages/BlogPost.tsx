@@ -64,9 +64,22 @@ export default function BlogPost() {
         </h1>
         <div className="h-px w-16 bg-gradient-to-r from-primary to-transparent mb-10" />
 
-        {/* Hero image */}
-        <div className="rounded-2xl overflow-hidden mb-12 aspect-[16/9]">
-          <img src={post.img} alt={post.title} className="w-full h-full object-cover object-top" />
+        {/* Hero image — Polaroid style */}
+        <div className="mb-14 flex justify-center">
+          <div
+            className="relative bg-white shadow-2xl"
+            style={{ padding: "14px 14px 56px 14px", maxWidth: "480px", width: "100%", transform: "rotate(-1.5deg)" }}
+          >
+            <div className="overflow-hidden" style={{ aspectRatio: "4/5" }}>
+              <img src={post.img} alt={post.title} className="w-full h-full object-cover object-top" />
+            </div>
+            <p
+              className="text-center mt-3 text-base"
+              style={{ fontFamily: "'Dancing Script', cursive", color: "#555", letterSpacing: "0.02em" }}
+            >
+              {post.title}
+            </p>
+          </div>
         </div>
 
         {/* Content or excerpt */}

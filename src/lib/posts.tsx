@@ -32,7 +32,7 @@ export const posts: Post[] = [
     seoDescription: "Discover the official Mia Rey website featuring artistic portrait photography, exclusive photos, and premium content. Explore the gallery and join for VIP access.",
     keywords: "mia rey, mia rey model, mia rey official website, mia rey photos, mia rey gallery, mia rey exclusive content, mia rey premium content, mia rey private photos, exclusive model gallery, artistic portrait photography",
     content: (
-      <div className="font-golos text-foreground/80 leading-relaxed space-y-6 text-[15px]">
+      <div className="text-foreground/80 leading-loose space-y-6 text-[17px]" style={{ fontFamily: "'Dancing Script', cursive" }}>
         <p>Hi, I'm Mia Rey.</p>
         <p>
           Welcome to my official website — a place where I share my creative world, my photography, and the visual stories behind every image. This website is more than just a gallery of photos. It's a space where artistic portrait photography, aesthetic style, and personal expression come together.
@@ -41,7 +41,7 @@ export const posts: Post[] = [
           Many of you may have discovered my work through social media, but this website is the central place where I can share my photography the way it was meant to be seen. Here you will find the Mia Rey gallery, exclusive content, and new photos that showcase my evolving style as a model and creative personality.
         </p>
 
-        <h2 className="font-cormorant text-3xl text-foreground font-light mt-10 mb-2">My Work as a Model</h2>
+        <h2 className="font-cormorant text-3xl text-foreground font-light mt-10 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>My Work as a Model</h2>
         <div className="h-px w-12 bg-gradient-to-r from-primary to-transparent mb-6" />
         <p>
           As a Mia Rey model, I focus on creating visual content that feels authentic, cinematic, and artistic. I'm inspired by portrait photography, fashion imagery, and modern aesthetic visuals.
@@ -53,7 +53,7 @@ export const posts: Post[] = [
           The Mia Rey photos you see on this site are carefully selected to represent my style and creative direction.
         </p>
 
-        <h2 className="font-cormorant text-3xl text-foreground font-light mt-10 mb-2">Inside the Mia Rey Gallery</h2>
+        <h2 className="font-cormorant text-3xl text-foreground font-light mt-10 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Inside the Mia Rey Gallery</h2>
         <div className="h-px w-12 bg-gradient-to-r from-primary to-transparent mb-6" />
         <p>
           One of the main parts of this website is the Mia Rey gallery. This is where you can explore different collections of my work.
@@ -72,7 +72,7 @@ export const posts: Post[] = [
           Photography is not just about capturing how someone looks — it's about capturing emotion, mood, and personality.
         </p>
 
-        <h2 className="font-cormorant text-3xl text-foreground font-light mt-10 mb-2">Exclusive Content and Premium Collections</h2>
+        <h2 className="font-cormorant text-3xl text-foreground font-light mt-10 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Exclusive Content and Premium Collections</h2>
         <div className="h-px w-12 bg-gradient-to-r from-primary to-transparent mb-6" />
         <p>
           Beyond the public gallery, I also create Mia Rey exclusive content for those who want to see more of my work.
@@ -84,7 +84,7 @@ export const posts: Post[] = [
           My goal is to create content that feels artistic, authentic, and visually unique.
         </p>
 
-        <h2 className="font-cormorant text-3xl text-foreground font-light mt-10 mb-2">Join My Creative Journey</h2>
+        <h2 className="font-cormorant text-3xl text-foreground font-light mt-10 mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Join My Creative Journey</h2>
         <div className="h-px w-12 bg-gradient-to-r from-primary to-transparent mb-6" />
         <p>This website is the official home of my work.</p>
         <p>
@@ -96,7 +96,7 @@ export const posts: Post[] = [
         <p className="text-foreground/60 italic">
           Thank you for visiting my website and being part of this journey.
         </p>
-        <p className="font-cormorant text-2xl text-gold-gradient">— Mia Rey</p>
+        <p className="text-2xl text-gold-gradient flex items-center gap-2" style={{ fontFamily: "'Dancing Script', cursive" }}>— Mia Rey 💋</p>
       </div>
     ),
   },
