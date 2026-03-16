@@ -100,6 +100,75 @@ export default function BlogPost() {
             </div>
           </div>
         )}
+
+        {/* Share */}
+        <div className="mt-12 pt-8" style={{ borderTop: "1px solid #d4c9b0" }}>
+          <p className="font-golos text-xs tracking-[0.3em] uppercase mb-4" style={{ color: "#9c8b6e" }}>Share this post</p>
+          <div className="flex gap-3 flex-wrap">
+            {[
+              { label: "Instagram", icon: "📸", url: `https://www.instagram.com/` },
+              { label: "Twitter / X", icon: "𝕏", url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(window.location.href)}` },
+              { label: "Telegram", icon: "✈️", url: `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(post.title)}` },
+              { label: "TikTok", icon: "🎵", url: `https://www.tiktok.com/` },
+            ].map((s) => (
+              <a
+                key={s.label}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2 rounded-full font-golos text-sm transition-all hover:scale-105"
+                style={{ backgroundColor: "#e8dcc8", color: "#5a3e1b", border: "1px solid #d4c9b0" }}
+              >
+                <span>{s.icon}</span>
+                {s.label}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Subscribe CTA */}
+        <div
+          className="mt-14 rounded-2xl p-8 text-center relative overflow-hidden"
+          style={{ background: "linear-gradient(135deg, #2a1f0e 0%, #4a2f1a 50%, #2a1f0e 100%)" }}
+        >
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 30% 50%, #c4a35a 0%, transparent 60%), radial-gradient(circle at 70% 50%, #e8a0b0 0%, transparent 60%)" }} />
+          <div className="relative z-10">
+            <p className="font-golos text-xs tracking-[0.4em] uppercase mb-3" style={{ color: "#c4a35a" }}>Exclusive Access</p>
+            <h3 className="font-cormorant text-3xl md:text-4xl font-light mb-3" style={{ color: "#f5f0e8" }}>
+              Want to see more?
+            </h3>
+            <p className="font-golos text-sm leading-relaxed mb-6 max-w-sm mx-auto" style={{ color: "rgba(245,240,232,0.65)" }}>
+              Subscribe and get access to private photo collections, exclusive content and personal stories that I share only with my subscribers.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+              <a
+                href="/#subscribe"
+                className="px-8 py-3 rounded-none font-golos text-sm tracking-widest uppercase transition-all hover:opacity-90"
+                style={{ backgroundColor: "#c4a35a", color: "#1a0f00" }}
+              >
+                Subscribe Now
+              </a>
+              <span className="font-golos text-xs" style={{ color: "rgba(245,240,232,0.4)" }}>
+                From $9.99 / month
+              </span>
+            </div>
+            <div className="flex justify-center gap-6 mt-6">
+              {[
+                { icon: "📸", label: "Instagram", href: "https://www.instagram.com/" },
+                { icon: "𝕏", label: "Twitter", href: "https://twitter.com/" },
+                { icon: "✈️", label: "Telegram", href: "https://t.me/" },
+                { icon: "🎵", label: "TikTok", href: "https://www.tiktok.com/" },
+              ].map((s) => (
+                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
+                  className="font-golos text-xs transition-colors hover:opacity-80"
+                  style={{ color: "rgba(245,240,232,0.5)" }}
+                >
+                  {s.icon} {s.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
       </article>
 
       {/* More posts */}

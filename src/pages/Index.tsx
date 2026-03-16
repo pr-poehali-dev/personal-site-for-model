@@ -420,11 +420,17 @@ export default function Index() {
             <p className="font-golos text-foreground/50 leading-relaxed mb-10 text-sm">
               Here I share exclusive content you won't find anywhere else. Subscribe and become part of my world.
             </p>
-            <div className="flex gap-6">
-              {["Instagram", "Telegram", "OnlyFans"].map((s) => (
-                <button key={s} className="text-xs font-golos tracking-wider text-muted-foreground hover:text-primary transition-colors duration-200 nav-link pb-1">
-                  {s}
-                </button>
+            <div className="flex gap-6 flex-wrap">
+              {[
+                { label: "Instagram", icon: "📸", href: "https://www.instagram.com/" },
+                { label: "Twitter / X", icon: "𝕏", href: "https://twitter.com/" },
+                { label: "Telegram", icon: "✈️", href: "https://t.me/" },
+                { label: "TikTok", icon: "🎵", href: "https://www.tiktok.com/" },
+              ].map((s) => (
+                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-golos tracking-wider text-muted-foreground hover:text-primary transition-colors duration-200 nav-link pb-1">
+                  <span>{s.icon}</span>{s.label}
+                </a>
               ))}
             </div>
           </div>
