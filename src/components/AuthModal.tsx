@@ -63,6 +63,7 @@ export default function AuthModal({ open, onClose, onSuccess, defaultMode = "log
           width: googleBtnRef.current.offsetWidth || 360,
           text: "continue_with",
           shape: "rectangular",
+          locale: "en",
         });
       }
     };
