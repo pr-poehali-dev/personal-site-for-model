@@ -274,7 +274,7 @@ export default function Index() {
           style={{
             backgroundImage: `url(${IMG_HERO})`,
             backgroundSize: "cover",
-            backgroundPosition: "center",
+            backgroundPosition: "center 20%",
             transform: `scale(1.1) translateY(${mousePos.y * 0.015}px)`,
             transition: "transform 0.1s linear",
           }}
