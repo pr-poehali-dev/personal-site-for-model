@@ -32,7 +32,38 @@ export default function BlogPost() {
   const otherPosts = posts.filter((p) => p.id !== post.id).slice(0, 3);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#f5f0e8" }}>
+    <div className="min-h-screen relative" style={{ backgroundColor: "#f5f0e8" }}>
+
+      {/* Граффити по бокам */}
+      <div className="fixed left-0 top-0 h-full w-40 pointer-events-none select-none overflow-hidden z-0" style={{ fontFamily: "'Dancing Script', cursive" }}>
+        <span className="absolute text-4xl" style={{ top: "8%", left: "8px", color: "#e8a0b0", opacity: 0.5, transform: "rotate(-15deg)" }}>♥</span>
+        <span className="absolute text-lg" style={{ top: "14%", left: "30px", color: "#c4a35a", opacity: 0.4, transform: "rotate(8deg)" }}>mia rey</span>
+        <span className="absolute text-3xl" style={{ top: "22%", left: "5px", color: "#b0c4de", opacity: 0.35, transform: "rotate(-20deg)" }}>✦</span>
+        <span className="absolute text-base" style={{ top: "30%", left: "20px", color: "#d4956a", opacity: 0.45, transform: "rotate(12deg)" }}>xoxo</span>
+        <span className="absolute text-5xl" style={{ top: "38%", left: "0px", color: "#e8a0b0", opacity: 0.3, transform: "rotate(-8deg)" }}>♡</span>
+        <span className="absolute text-sm" style={{ top: "47%", left: "35px", color: "#8b7355", opacity: 0.4, transform: "rotate(-18deg)" }}>✨ love</span>
+        <span className="absolute text-2xl" style={{ top: "55%", left: "10px", color: "#c4a35a", opacity: 0.35, transform: "rotate(15deg)" }}>★</span>
+        <span className="absolute text-base" style={{ top: "63%", left: "18px", color: "#e8a0b0", opacity: 0.45, transform: "rotate(-10deg)" }}>💋</span>
+        <span className="absolute text-3xl" style={{ top: "70%", left: "5px", color: "#b0c4de", opacity: 0.3, transform: "rotate(22deg)" }}>♥</span>
+        <span className="absolute text-sm" style={{ top: "78%", left: "28px", color: "#c4a35a", opacity: 0.4, transform: "rotate(-14deg)" }}>always</span>
+        <span className="absolute text-4xl" style={{ top: "85%", left: "8px", color: "#e8a0b0", opacity: 0.35, transform: "rotate(6deg)" }}>✿</span>
+        <span className="absolute text-base" style={{ top: "92%", left: "15px", color: "#d4956a", opacity: 0.4, transform: "rotate(-20deg)" }}>dreaming</span>
+      </div>
+
+      <div className="fixed right-0 top-0 h-full w-40 pointer-events-none select-none overflow-hidden z-0" style={{ fontFamily: "'Dancing Script', cursive" }}>
+        <span className="absolute text-3xl" style={{ top: "6%", right: "12px", color: "#c4a35a", opacity: 0.4, transform: "rotate(18deg)" }}>✦</span>
+        <span className="absolute text-base" style={{ top: "13%", right: "20px", color: "#e8a0b0", opacity: 0.45, transform: "rotate(-12deg)" }}>be mine</span>
+        <span className="absolute text-5xl" style={{ top: "21%", right: "5px", color: "#e8a0b0", opacity: 0.3, transform: "rotate(10deg)" }}>♡</span>
+        <span className="absolute text-sm" style={{ top: "29%", right: "25px", color: "#8b7355", opacity: 0.4, transform: "rotate(16deg)" }}>✨ magic</span>
+        <span className="absolute text-2xl" style={{ top: "37%", right: "8px", color: "#d4956a", opacity: 0.35, transform: "rotate(-25deg)" }}>♥</span>
+        <span className="absolute text-base" style={{ top: "45%", right: "18px", color: "#c4a35a", opacity: 0.45, transform: "rotate(8deg)" }}>gorgeous</span>
+        <span className="absolute text-4xl" style={{ top: "53%", right: "3px", color: "#b0c4de", opacity: 0.3, transform: "rotate(-12deg)" }}>★</span>
+        <span className="absolute text-base" style={{ top: "61%", right: "22px", color: "#e8a0b0", opacity: 0.4, transform: "rotate(20deg)" }}>💋</span>
+        <span className="absolute text-3xl" style={{ top: "69%", right: "10px", color: "#c4a35a", opacity: 0.35, transform: "rotate(-8deg)" }}>✿</span>
+        <span className="absolute text-sm" style={{ top: "77%", right: "28px", color: "#d4956a", opacity: 0.4, transform: "rotate(14deg)" }}>art & soul</span>
+        <span className="absolute text-4xl" style={{ top: "84%", right: "6px", color: "#e8a0b0", opacity: 0.3, transform: "rotate(-18deg)" }}>♥</span>
+        <span className="absolute text-sm" style={{ top: "91%", right: "15px", color: "#8b7355", opacity: 0.4, transform: "rotate(10deg)" }}>forever</span>
+      </div>
       {/* Nav */}
       <nav className="sticky top-0 z-50 px-6 py-5 flex items-center justify-between backdrop-blur-sm border-b" style={{ backgroundColor: "rgba(245,240,232,0.9)", borderColor: "#d4c9b0" }}>
         <Link
