@@ -97,8 +97,8 @@ function LoginForm({ onLogin }: { onLogin: () => void }) {
         <p className="text-muted-foreground text-sm text-center mb-8">Только для администраторов</p>
         <form onSubmit={submit} className="space-y-4">
           <input
-            type="email"
-            placeholder="Email"
+            type="text"
+            placeholder="Логин"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-4 py-3 rounded-xl bg-muted border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary text-sm"
