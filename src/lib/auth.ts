@@ -35,6 +35,17 @@ export async function login(email: string, password: string): Promise<AuthResult
   return data;
 }
 
+export async function googleLogin(googleToken: string): Promise<AuthResult> {
+  const res = await fetch(`${AUTH_URL}/?action=google`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: googleToken }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Google login failed");
+  return data;
+}
+
 export async function getMe(token: string): Promise<User> {
   const res = await fetch(`${AUTH_URL}/?action=me`, {
     headers: { Authorization: `Bearer ${token}` },

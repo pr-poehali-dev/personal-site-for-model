@@ -1,6 +1,22 @@
-import { useState } from "react";
-import { register, login, saveToken, User } from "@/lib/auth";
+import { useState, useEffect, useRef } from "react";
+import { register, login, googleLogin, saveToken, User } from "@/lib/auth";
 import Icon from "@/components/ui/icon";
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (cfg: object) => void;
+          renderButton: (el: HTMLElement, cfg: object) => void;
+          prompt: () => void;
+        };
+      };
+    };
+  }
+}
+
+const GOOGLE_CLIENT_ID = "540477062466-8rir2l7nhfto5ai94chdt25bqk9hp1g4.apps.googleusercontent.com";
 
 interface Props {
   open: boolean;
@@ -17,6 +33,48 @@ export default function AuthModal({ open, onClose, onSuccess, defaultMode = "log
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPass, setShowPass] = useState(false);
+  const googleBtnRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open || !googleBtnRef.current) return;
+    const init = () => {
+      if (!window.google) return;
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: async (response: { credential: string }) => {
+          setLoading(true);
+          setError("");
+          try {
+            const result = await googleLogin(response.credential);
+            saveToken(result.token);
+            onSuccess(result.user, result.token);
+            onClose();
+          } catch (e: unknown) {
+            setError(e instanceof Error ? e.message : "Google login failed");
+          } finally {
+            setLoading(false);
+          }
+        },
+      });
+      if (googleBtnRef.current) {
+        window.google.accounts.id.renderButton(googleBtnRef.current, {
+          theme: "filled_black",
+          size: "large",
+          width: googleBtnRef.current.offsetWidth || 360,
+          text: "continue_with",
+          shape: "rectangular",
+        });
+      }
+    };
+    if (window.google) {
+      init();
+    } else {
+      const interval = setInterval(() => {
+        if (window.google) { clearInterval(interval); init(); }
+      }, 200);
+      return () => clearInterval(interval);
+    }
+  }, [open]);
 
   if (!open) return null;
 
@@ -108,6 +166,16 @@ export default function AuthModal({ open, onClose, onSuccess, defaultMode = "log
           >
             Register
           </button>
+        </div>
+
+        {/* Google Button */}
+        <div className="px-8 pb-4">
+          <div ref={googleBtnRef} className="w-full flex justify-center" />
+          <div className="flex items-center gap-3 mt-4">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-[10px] font-golos uppercase tracking-widest text-muted-foreground">or</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
         </div>
 
         {/* Form */}

@@ -8,6 +8,7 @@ import hashlib
 import hmac
 import base64
 import time
+import urllib.request
 import psycopg2
 
 
@@ -186,4 +187,48 @@ def handler(event: dict, context) -> dict:
             }
         })
 
-    return err("Unknown action. Use ?action=register|login|me", 404)
+    # ── GOOGLE ───────────────────────────────────────────────────────────
+    if action == "google":
+        google_token = body.get("token") or ""
+        if not google_token:
+            return err("Google token required", 400)
+        req = urllib.request.Request(
+            f"https://oauth2.googleapis.com/tokeninfo?id_token={google_token}"
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                info = json.loads(resp.read())
+        except Exception:
+            return err("Invalid Google token", 401)
+        if info.get("aud") != os.environ.get("GOOGLE_CLIENT_ID", ""):
+            return err("Invalid Google token audience", 401)
+        email = (info.get("email") or "").strip().lower()
+        name = info.get("name") or info.get("given_name") or ""
+        if not email:
+            return err("Google account has no email", 400)
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(f"SELECT id, name, role FROM {schema}.users WHERE email = %s", (email,))
+        row = cur.fetchone()
+        if row:
+            user_id, db_name, role = row
+        else:
+            cur.execute(
+                f"INSERT INTO {schema}.users (email, password_hash, name) VALUES (%s, %s, %s) RETURNING id, role",
+                (email, "google:oauth", name or None)
+            )
+            ins = cur.fetchone()
+            conn.commit()
+            user_id, role = ins
+            db_name = name
+        conn.close()
+        token = make_token(user_id, role)
+        return ok({
+            "token": token,
+            "user": {
+                "id": user_id, "email": email, "name": db_name, "role": role,
+                "subscription": get_subscription(user_id, schema)
+            }
+        })
+
+    return err("Unknown action. Use ?action=register|login|me|google", 404)
