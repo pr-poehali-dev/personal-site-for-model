@@ -282,9 +282,7 @@ export default function Index() {
             <span className="text-gold-gradient">MIA</span>
           </h1>
           <div className="h-px w-24 bg-gradient-to-r from-transparent via-primary to-transparent mb-6 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }} />
-          <p className="font-cormorant italic text-xl md:text-2xl text-foreground/70 mb-10 font-light opacity-0 animate-fade-in-up" style={{ animationDelay: "0.7s", animationFillMode: "forwards" }}>
-            Art. Beauty. Desire.
-          </p>
+          <p className="font-cormorant italic text-xl md:text-2xl text-foreground/70 mb-10 font-light opacity-0 animate-fade-in-up" style={{ animationDelay: "0.7s", animationFillMode: "forwards" }}>Official Website</p>
           <div className="flex gap-4 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.9s", animationFillMode: "forwards" }}>
             <button onClick={() => scrollTo("feed")} className="px-8 py-3 bg-primary text-primary-foreground text-sm tracking-widest uppercase font-golos hover:bg-primary/90 transition-all duration-300 animate-glow-pulse">
               View Feed
