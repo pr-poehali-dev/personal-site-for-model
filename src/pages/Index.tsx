@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import AuthModal from "@/components/AuthModal";
 import { getToken, getMe, clearToken, hasTier, User } from "@/lib/auth";
@@ -57,6 +58,7 @@ const tiers = [
 ];
 
 export default function Index() {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("home");
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [ringPos, setRingPos] = useState({ x: 0, y: 0 });
@@ -165,6 +167,8 @@ export default function Index() {
     { id: "contact", label: "Contact" },
   ];
 
+  const handleBlogClick = () => navigate("/blog");
+
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       {/* Custom cursor */}
@@ -192,6 +196,14 @@ export default function Index() {
               </button>
             </li>
           ))}
+          <li>
+            <button
+              onClick={handleBlogClick}
+              className="nav-link text-sm tracking-widest uppercase font-golos transition-colors duration-200 text-muted-foreground hover:text-foreground"
+            >
+              Blog
+            </button>
+          </li>
         </ul>
         {/* Auth controls */}
         {user ? (
@@ -624,6 +636,155 @@ export default function Index() {
               </button>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── SEO TEXT SECTION ── */}
+      <section className="py-24 px-6 bg-gradient-to-b from-background via-muted/5 to-background">
+        <div className="max-w-4xl mx-auto space-y-16">
+
+          {/* Block 1 */}
+          <div className="scroll-reveal space-y-4">
+            <h1 className="font-cormorant text-4xl md:text-5xl font-light tracking-wide text-gold-gradient leading-tight">
+              Mia Rey – Exclusive Model Gallery
+            </h1>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              Welcome to the official home of Mia Rey, where artistic vision meets premium visual storytelling. This is more than a portfolio—it's a curated collection of aesthetic portrait photography that captures the essence of contemporary beauty and creative expression.
+            </p>
+          </div>
+
+          <div className="h-px w-32 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
+          {/* Block 2 */}
+          <div className="scroll-reveal space-y-4">
+            <h2 className="font-cormorant text-3xl md:text-4xl font-light tracking-wide text-foreground/90 leading-tight">
+              Discover Mia Rey: Model, Artist, Creative Vision
+            </h2>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              Mia Rey is a model and content creator known for her distinctive approach to artistic portrait photography. Her work transcends traditional modeling, blending cinematic lighting, carefully composed aesthetics, and a refined visual language that resonates with audiences seeking authentic, high-quality imagery.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              As a Mia Rey model and creative professional, she specializes in producing exclusive visual content that explores themes of beauty, lifestyle, and artistic expression. Each photograph is intentionally crafted to deliver a premium aesthetic experience—from intimate portrait studies to dynamic lifestyle imagery that tells a story.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              The Mia Rey official website serves as the central hub for her most compelling work, offering visitors direct access to her evolving portfolio and exclusive behind-the-scenes content. Whether you're here to appreciate fine portrait photography or discover new perspectives on aesthetic visual art, you'll find carefully curated collections that showcase her unique creative direction.
+            </p>
+          </div>
+
+          <div className="h-px w-32 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
+          {/* Block 3 */}
+          <div className="scroll-reveal space-y-4">
+            <h2 className="font-cormorant text-3xl md:text-4xl font-light tracking-wide text-foreground/90 leading-tight">
+              Explore the Gallery: Premium Visual Collections
+            </h2>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              The heart of this site is the Mia Rey gallery—a comprehensive showcase of artistic portraits and aesthetic photography spanning multiple collections. Here, you'll discover the depth and range of her work across different themes, moods, and visual styles.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              Mia Rey photos in the gallery represent months of creative collaboration, professional photography sessions, and meticulous post-production work. Each image is selected for its artistic merit, technical excellence, and emotional impact. The collections range from intimate black-and-white portrait studies to vibrant lifestyle imagery, all unified by a consistent aesthetic vision.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              The exclusive model gallery features work that you won't find anywhere else online. These are original compositions created specifically for this platform, representing the most refined selections from her portfolio. Whether you're interested in portrait photography or seeking inspiration from contemporary aesthetic visual art, the gallery offers something for every discerning viewer.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              Browse through carefully organized collections that showcase different facets of her artistry. Each section reveals new dimensions of her creative practice, from cinematic portrait photography to lifestyle and beauty imagery. The gallery is designed for exploration—take your time discovering the visual narratives that resonate with you.
+            </p>
+          </div>
+
+          <div className="h-px w-32 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
+          {/* Block 4 */}
+          <div className="scroll-reveal space-y-4">
+            <h2 className="font-cormorant text-3xl md:text-4xl font-light tracking-wide text-foreground/90 leading-tight">
+              Access Exclusive Content: Premium and Private Collections
+            </h2>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              Beyond the public gallery lies a world of Mia Rey exclusive content reserved for subscribers and VIP members. This is where the most intimate, experimental, and premium material lives—content created for an audience that appreciates the full scope of her artistic vision.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              Mia Rey premium content includes private photo galleries, behind-the-scenes documentation, exclusive video content, and limited-edition collections that showcase her work in its most refined form. These aren't just additional photos; they represent a deeper engagement with her creative process and artistic evolution.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              Mia Rey private photos are available through subscription, offering subscribers access to content that captures unfiltered moments, experimental shoots, and exclusive collaborations. This tier of access is designed for those who want to support her work directly while gaining insight into her creative practice.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              The VIP content experience includes early access to new collections, exclusive announcements, and direct communication with Mia Rey herself. Subscribers become part of an intimate community that values artistic excellence and creative authenticity.
+            </p>
+          </div>
+
+          <div className="h-px w-32 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
+          {/* Block 5 */}
+          <div className="scroll-reveal space-y-4">
+            <h2 className="font-cormorant text-3xl md:text-4xl font-light tracking-wide text-foreground/90 leading-tight">
+              The Aesthetic: Cinematic Vision and Artistic Direction
+            </h2>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              What sets Mia Rey apart is her distinctive visual language—a carefully developed aesthetic that combines technical mastery with artistic intuition. Her work is characterized by thoughtful composition, sophisticated color grading, and an understanding of how light shapes emotion and narrative.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              Artistic portrait photography forms the foundation of her practice. Each portrait is more than a documentation of appearance; it's an exploration of presence, mood, and the subtle interplay between subject and environment. Her approach to portrait photography emphasizes authenticity while maintaining a polished, professional aesthetic.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              The aesthetic portrait model style she's developed draws inspiration from contemporary fine art, cinema, and editorial fashion photography. Dark aesthetic photography plays a significant role in her visual vocabulary—moody lighting, rich shadows, and carefully controlled contrast create images that feel both intimate and cinematic.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              The visual aesthetic extends beyond individual images to encompass entire collections and series. Each body of work tells a story, explores a theme, or investigates a particular aspect of visual storytelling. This cohesive approach transforms the gallery from a simple collection of photos into a meaningful artistic statement.
+            </p>
+          </div>
+
+          <div className="h-px w-32 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
+          {/* Block 6 */}
+          <div className="scroll-reveal space-y-4">
+            <h2 className="font-cormorant text-3xl md:text-4xl font-light tracking-wide text-foreground/90 leading-tight">
+              Your Gateway to Exclusive Visual Art
+            </h2>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              This website is structured to guide you through different layers of engagement with Mia Rey's work. Start by exploring the Gallery section, where you can browse through public collections and get a sense of her artistic direction and visual style.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              The Feed section keeps you updated with the latest releases, new collections, and behind-the-scenes moments. Follow along to stay connected with her creative journey and be among the first to discover new work as it's released.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              For those ready to deepen their engagement, the Subscribe section offers access to Mia Rey exclusive content and premium material. Subscription unlocks private photo galleries, exclusive collections, and VIP benefits that provide a more intimate connection to her work and creative process.
+            </p>
+          </div>
+
+          <div className="h-px w-32 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
+          {/* Block 7 */}
+          <div className="scroll-reveal space-y-4">
+            <h3 className="font-cormorant text-2xl md:text-3xl font-light tracking-wide text-foreground/80 leading-tight">
+              Why Choose Mia Rey
+            </h3>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              In a landscape saturated with generic content, Mia Rey stands out through commitment to artistic excellence and authentic creative expression. Her work isn't about following trends—it's about establishing them, pushing boundaries, and creating visual art that endures.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              Every photograph, every collection, and every piece of content on this site reflects a dedication to quality, intentionality, and artistic vision. Whether you're a photography enthusiast, an art collector, or simply someone who appreciates beautiful, well-crafted imagery, you'll find value in exploring her portfolio.
+            </p>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed">
+              The Mia Rey official website represents the most direct, unfiltered access to her work. No intermediaries, no compromises—just pure artistic expression delivered directly to you.
+            </p>
+          </div>
+
+          <div className="h-px w-32 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
+          {/* Block 8 — CTA */}
+          <div className="scroll-reveal space-y-4 text-center">
+            <h3 className="font-cormorant text-2xl md:text-3xl font-light tracking-wide text-foreground/80 leading-tight">
+              Begin Your Journey
+            </h3>
+            <p className="font-golos text-muted-foreground text-base leading-relaxed max-w-2xl mx-auto">
+              Your exploration of Mia Rey's artistic world starts here. Browse the gallery to discover the range and depth of her work. Follow the feed to stay connected with new releases and creative developments. And when you're ready to access the full spectrum of her exclusive content, subscribe to unlock premium collections and VIP experiences.
+            </p>
+            <p className="font-golos text-muted-foreground/60 text-sm leading-relaxed max-w-2xl mx-auto italic">
+              This is more than a model portfolio—it's an invitation into a carefully curated world of aesthetic visual art, premium content, and authentic creative expression. Welcome to the official home of Mia Rey.
+            </p>
+          </div>
+
         </div>
       </section>
 
