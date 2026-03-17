@@ -79,6 +79,12 @@ export default function Index() {
     return () => obs.disconnect();
   }, []);
 
+  // Enable custom cursor only on this page
+  useEffect(() => {
+    document.body.classList.add("custom-cursor");
+    return () => document.body.classList.remove("custom-cursor");
+  }, []);
+
   // Load user from saved token on mount
   useEffect(() => {
     const token = getToken();

@@ -51,6 +51,9 @@
   body {
     @apply bg-background text-foreground;
     font-family: "Golos Text", sans-serif;
+  }
+
+  body.custom-cursor {
     cursor: none;
   }
 
