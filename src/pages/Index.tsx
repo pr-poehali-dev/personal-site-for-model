@@ -34,6 +34,7 @@ export default function Index() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [lightbox, setLightbox] = useState<{ imgs: string[]; idx: number } | null>(null);
   const ringPosRef = useRef({ x: 0, y: 0 });
@@ -121,133 +122,131 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       {/* ── NAV ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between backdrop-blur-md bg-background/70 border-b border-border">
+      <nav className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 py-4 flex items-center justify-between backdrop-blur-md bg-background/70 border-b border-border">
         <div className="flex items-center gap-1.5">
           <span className="font-cormorant text-2xl font-light tracking-[0.2em] text-gold-gradient">Mia Rey</span>
           <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground" title="Verified">
             <Icon name="Check" size={11} />
           </span>
         </div>
+
+        {/* Desktop nav */}
         <ul className="hidden md:flex gap-8">
           {navLinks.map((l) => (
             <li key={l.id}>
-              <button
-                onClick={() => scrollTo(l.id)}
-                className={`nav-link text-sm tracking-widest uppercase font-golos transition-colors duration-200 ${
-                  activeSection === l.id ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
+              <button onClick={() => scrollTo(l.id)} className={`nav-link text-sm tracking-widest uppercase font-golos transition-colors duration-200 ${activeSection === l.id ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
                 {l.label}
               </button>
             </li>
           ))}
-          <li>
-            <button
-              onClick={handleBlogClick}
-              className="nav-link text-sm tracking-widest uppercase font-golos transition-colors duration-200 text-muted-foreground hover:text-foreground"
-            >
-              Blog
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => navigate("/feed")}
-              className="nav-link text-sm tracking-widest uppercase font-golos transition-colors duration-200 text-muted-foreground hover:text-foreground"
-            >
-              Feed
-            </button>
-          </li>
+          <li><button onClick={handleBlogClick} className="nav-link text-sm tracking-widest uppercase font-golos transition-colors duration-200 text-muted-foreground hover:text-foreground">Blog</button></li>
+          <li><button onClick={() => navigate("/feed")} className="nav-link text-sm tracking-widest uppercase font-golos transition-colors duration-200 text-muted-foreground hover:text-foreground">Feed</button></li>
         </ul>
-        {/* Auth controls */}
-        {user ? (
-          <div className="relative">
-            <button
-              onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center gap-2 text-xs font-golos tracking-wider text-foreground/70 hover:text-foreground transition-colors"
-            >
-              <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
-                <Icon name="User" size={13} className="text-primary" />
-              </div>
-              <span className="hidden md:block">{user.name || user.email.split("@")[0]}</span>
-              <Icon name="ChevronDown" size={13} />
-            </button>
-            {userMenuOpen && (
-              <div className="absolute right-0 top-10 w-52 bg-card border border-border rounded-xl overflow-hidden shadow-xl z-50">
-                <div className="px-4 py-3 border-b border-border">
-                  <p className="text-xs font-golos text-foreground/80 truncate">{user.email}</p>
-                  {user.subscription ? (
-                    <span className="text-[10px] text-primary font-golos uppercase tracking-wider">
-                      {user.subscription.tier === "vip" ? "Full Access" : "Photo Access"}
-                    </span>
-                  ) : (
-                    <span className="text-[10px] text-muted-foreground font-golos">No active subscription</span>
-                  )}
+
+        {/* Right side */}
+        <div className="flex items-center gap-3">
+          {/* Auth desktop */}
+          {user ? (
+            <div className="relative hidden md:block">
+              <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-2 text-xs font-golos tracking-wider text-foreground/70 hover:text-foreground transition-colors">
+                <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
+                  <Icon name="User" size={13} className="text-primary" />
                 </div>
-                {!user.subscription && (
-                  <button
-                    onClick={() => { setUserMenuOpen(false); scrollTo("subscribe"); }}
-                    className="w-full text-left px-4 py-2.5 text-xs font-golos text-primary hover:bg-primary/10 transition-colors flex items-center gap-2"
-                  >
-                    <Icon name="Star" size={13} />
-                    Get subscription
+                <span>{user.name || user.email.split("@")[0]}</span>
+                <Icon name="ChevronDown" size={13} />
+              </button>
+              {userMenuOpen && (
+                <div className="absolute right-0 top-10 w-52 bg-card border border-border rounded-xl overflow-hidden shadow-xl z-50">
+                  <div className="px-4 py-3 border-b border-border">
+                    <p className="text-xs font-golos text-foreground/80 truncate">{user.email}</p>
+                    {user.subscription ? <span className="text-[10px] text-primary font-golos uppercase tracking-wider">{user.subscription.tier === "vip" ? "Full Access" : "Photo Access"}</span> : <span className="text-[10px] text-muted-foreground font-golos">No active subscription</span>}
+                  </div>
+                  {!user.subscription && (
+                    <button onClick={() => { setUserMenuOpen(false); scrollTo("subscribe"); }} className="w-full text-left px-4 py-2.5 text-xs font-golos text-primary hover:bg-primary/10 transition-colors flex items-center gap-2">
+                      <Icon name="Star" size={13} /> Get subscription
+                    </button>
+                  )}
+                  <button onClick={logout} className="w-full text-left px-4 py-2.5 text-xs font-golos text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors flex items-center gap-2">
+                    <Icon name="LogOut" size={13} /> Sign out
                   </button>
-                )}
-                <button
-                  onClick={logout}
-                  className="w-full text-left px-4 py-2.5 text-xs font-golos text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors flex items-center gap-2"
-                >
-                  <Icon name="LogOut" size={13} />
-                  Sign out
-                </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center gap-3">
+              <button onClick={() => openAuth("login")} className="text-xs tracking-wider font-golos text-muted-foreground hover:text-foreground transition-colors">Sign In</button>
+              <button onClick={() => openAuth("register")} className="text-xs tracking-[0.2em] uppercase px-5 py-2 border border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 font-golos">Subscribe</button>
+            </div>
+          )}
+
+          {/* Mobile hamburger */}
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 text-foreground/70 hover:text-foreground transition-colors">
+            <Icon name={mobileMenuOpen ? "X" : "Menu"} size={22} />
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile menu dropdown */}
+      {mobileMenuOpen && (
+        <div className="fixed top-[57px] left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-b border-border">
+          <div className="flex flex-col py-3">
+            {navLinks.map((l) => (
+              <button key={l.id} onClick={() => { scrollTo(l.id); setMobileMenuOpen(false); }} className="px-6 py-3 text-sm tracking-widest uppercase font-golos text-left text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors">
+                {l.label}
+              </button>
+            ))}
+            <button onClick={() => { handleBlogClick(); setMobileMenuOpen(false); }} className="px-6 py-3 text-sm tracking-widest uppercase font-golos text-left text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors">Blog</button>
+            <button onClick={() => { navigate("/feed"); setMobileMenuOpen(false); }} className="px-6 py-3 text-sm tracking-widest uppercase font-golos text-left text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors">Feed</button>
+            <div className="h-px bg-border mx-6 my-2" />
+            {user ? (
+              <>
+                <div className="px-6 py-2 text-xs font-golos text-muted-foreground truncate">{user.email}</div>
+                <button onClick={() => { logout(); setMobileMenuOpen(false); }} className="px-6 py-3 text-sm font-golos text-left text-muted-foreground hover:text-foreground transition-colors">Sign out</button>
+              </>
+            ) : (
+              <div className="flex gap-3 px-6 py-3">
+                <button onClick={() => { openAuth("login"); setMobileMenuOpen(false); }} className="flex-1 py-2.5 text-xs tracking-wider font-golos border border-border text-foreground/70 rounded-lg">Sign In</button>
+                <button onClick={() => { openAuth("register"); setMobileMenuOpen(false); }} className="flex-1 py-2.5 text-xs tracking-wider uppercase font-golos bg-primary text-primary-foreground rounded-lg">Subscribe</button>
               </div>
             )}
           </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => openAuth("login")}
-              className="text-xs tracking-wider font-golos text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => openAuth("register")}
-              className="text-xs tracking-[0.2em] uppercase px-5 py-2 border border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 font-golos"
-            >
-              Subscribe
-            </button>
-          </div>
-        )}
-      </nav>
+        </div>
+      )}
 
       {/* ── HERO ── */}
-      <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
+      <section id="home" className="relative min-h-screen flex flex-col md:flex-row items-center overflow-hidden">
         <div className="absolute inset-0 bg-background" />
         <div className="absolute top-1/3 left-1/4 w-64 h-64 rounded-full bg-primary/5 blur-3xl animate-float" />
         <div className="absolute bottom-1/3 right-1/3 w-48 h-48 rounded-full bg-accent/5 blur-3xl animate-float delay-300" />
 
-        {/* Текст слева */}
-        <div className="relative z-10 flex-1 flex flex-col justify-center px-12 md:px-24 py-24">
-          <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-6 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
+        {/* Фото — на мобильном сверху, на десктопе справа */}
+        <div className="relative z-10 w-full md:hidden h-[55vw] min-h-[260px] flex-shrink-0 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
+          <img src={IMG_HERO} alt="Mia Rey" className="h-full w-full object-cover object-top" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-background" />
+        </div>
+
+        {/* Текст */}
+        <div className="relative z-10 flex-1 flex flex-col justify-center px-6 md:px-24 py-8 md:py-24">
+          <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-4 md:mb-6 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
             Welcome to my world
           </p>
-          <h1 className="font-cormorant text-7xl md:text-9xl font-light tracking-wide mb-4 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
+          <h1 className="font-cormorant text-6xl md:text-9xl font-light tracking-wide mb-4 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
             <span className="text-gold-gradient">MIA</span>
           </h1>
-          <div className="h-px w-24 bg-gradient-to-r from-transparent via-primary to-transparent mb-6 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }} />
-          <p className="font-cormorant italic text-xl md:text-2xl text-foreground/70 mb-10 font-light opacity-0 animate-fade-in-up" style={{ animationDelay: "0.7s", animationFillMode: "forwards" }}>Official Website</p>
-          <div className="flex gap-4 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.9s", animationFillMode: "forwards" }}>
-            <button onClick={() => scrollTo("feed")} className="px-8 py-3 bg-primary text-primary-foreground text-sm tracking-widest uppercase font-golos hover:bg-primary/90 transition-all duration-300 animate-glow-pulse">
+          <div className="h-px w-24 bg-gradient-to-r from-transparent via-primary to-transparent mb-4 md:mb-6 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }} />
+          <p className="font-cormorant italic text-lg md:text-2xl text-foreground/70 mb-8 md:mb-10 font-light opacity-0 animate-fade-in-up" style={{ animationDelay: "0.7s", animationFillMode: "forwards" }}>Official Website</p>
+          <div className="flex gap-3 md:gap-4 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.9s", animationFillMode: "forwards" }}>
+            <button onClick={() => scrollTo("feed")} className="px-6 md:px-8 py-3 bg-primary text-primary-foreground text-xs md:text-sm tracking-widest uppercase font-golos hover:bg-primary/90 transition-all duration-300 animate-glow-pulse">
               View Feed
             </button>
-            <button onClick={() => scrollTo("subscribe")} className="px-8 py-3 border border-foreground/20 text-foreground/70 text-sm tracking-widest uppercase font-golos hover:border-primary hover:text-primary transition-all duration-300">
+            <button onClick={() => scrollTo("subscribe")} className="px-6 md:px-8 py-3 border border-foreground/20 text-foreground/70 text-xs md:text-sm tracking-widest uppercase font-golos hover:border-primary hover:text-primary transition-all duration-300">
               Subscribe
             </button>
           </div>
         </div>
 
-        {/* Фото справа */}
-        <div className="relative z-10 h-screen w-[45vw] flex-shrink-0 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
+        {/* Фото справа — только десктоп */}
+        <div className="relative z-10 h-screen w-[45vw] flex-shrink-0 hidden md:block opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
           <img
             src={IMG_HERO}
             alt="Mia Rey"
@@ -258,7 +257,7 @@ export default function Index() {
           <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background/60" />
         </div>
 
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground/50">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center gap-2 text-muted-foreground/50">
           <span className="text-xs tracking-widest uppercase font-golos">Scroll</span>
           <div className="w-px h-12 bg-gradient-to-b from-muted-foreground/30 to-transparent" />
         </div>
