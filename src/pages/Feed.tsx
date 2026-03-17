@@ -18,6 +18,7 @@ interface MediaItem {
   created_at: string;
   likes_count: number;
   user_liked: boolean;
+  comments_count: number;
 }
 
 async function fetchMedia(token?: string | null): Promise<MediaItem[]> {
@@ -214,6 +215,7 @@ export default function Feed() {
                 onClick={() => !item.locked && navigate(`/feed/${item.id}`)}
                 onLike={() => toggleLike(item)}
                 liking={likingIds.has(item.id)}
+                navigate={navigate}
               />
             ))}
           </div>
@@ -223,13 +225,14 @@ export default function Feed() {
   );
 }
 
-function FeedCard({ item, user, onSubscribe, onClick, onLike, liking }: {
+function FeedCard({ item, user, onSubscribe, onClick, onLike, liking, navigate }: {
   item: MediaItem;
   user: User | null;
   onSubscribe: () => void;
   onClick: () => void;
   onLike: () => void;
   liking: boolean;
+  navigate: (path: string) => void;
 }) {
   const isVideo = item.type === "video";
   const preview = item.thumbnail_url || item.url;
@@ -296,19 +299,29 @@ function FeedCard({ item, user, onSubscribe, onClick, onLike, liking }: {
               {item.tier}
             </span>
           )}
-          <button
-            onClick={(e) => { e.stopPropagation(); onLike(); }}
-            disabled={liking}
-            className="flex items-center gap-1.5 transition-all disabled:opacity-50 group"
-            style={{ color: item.user_liked ? "#e8a0b0" : "#b8a882" }}
-          >
-            <span className="text-xl leading-none transition-transform group-active:scale-125" style={{ display: "inline-block" }}>
-              {item.user_liked ? "♥" : "♡"}
-            </span>
-            <span className="font-golos text-sm font-medium tabular-nums">
-              {item.likes_count.toLocaleString()}
-            </span>
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={(e) => { e.stopPropagation(); if (!item.locked) navigate(`/feed/${item.id}#comments`); }}
+              className="flex items-center gap-1.5 transition-all"
+              style={{ color: "#b8a882" }}
+            >
+              <span className="text-xl leading-none">💬</span>
+              <span className="font-golos text-sm tabular-nums">{item.comments_count}</span>
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onLike(); }}
+              disabled={liking}
+              className="flex items-center gap-1.5 transition-all disabled:opacity-50 group"
+              style={{ color: item.user_liked ? "#e8a0b0" : "#b8a882" }}
+            >
+              <span className="text-xl leading-none transition-transform group-active:scale-125" style={{ display: "inline-block" }}>
+                {item.user_liked ? "♥" : "♡"}
+              </span>
+              <span className="font-golos text-sm font-medium tabular-nums">
+                {item.likes_count.toLocaleString()}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

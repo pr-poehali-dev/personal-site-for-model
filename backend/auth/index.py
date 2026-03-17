@@ -471,6 +471,13 @@ def handler(event: dict, context) -> dict:
         if user_id:
             cur.execute(f"SELECT media_id FROM {schema}.media_likes WHERE user_id=%s", (user_id,))
             liked_ids = {r[0] for r in cur.fetchall()}
+        media_ids = [row[0] for row in rows]
+        comments_count = {}
+        if media_ids:
+            ids_str = ",".join(str(i) for i in media_ids)
+            cur.execute(f"SELECT media_id, COUNT(*) FROM {schema}.media_comments WHERE media_id IN ({ids_str}) GROUP BY media_id")
+            for r in cur.fetchall():
+                comments_count[r[0]] = r[1]
         conn.close()
         items = []
         for row in rows:
@@ -489,6 +496,7 @@ def handler(event: dict, context) -> dict:
                 "tier": tier_req, "locked": locked,
                 "sort_order": row[8], "created_at": str(row[9]),
                 "likes_count": row[10], "user_liked": row[0] in liked_ids,
+                "comments_count": comments_count.get(row[0], 0),
             })
         return ok({"items": items, "total": len(items)})
 
