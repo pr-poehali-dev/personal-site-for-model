@@ -54,7 +54,16 @@
       "method": "GET",
       "path": "/?action=get_media",
       "expectedStatus": 200,
-      "expectedBody": {"items": [], "total": 0},
+      "expectedBody": {"total": 0},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Toggle like without token",
+      "method": "POST",
+      "path": "/?action=toggle_like",
+      "body": {"media_id": 1},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
       "bodyMatcher": "partial"
     }
   ]

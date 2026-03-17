@@ -9,6 +9,7 @@ import hashlib
 import hmac
 import base64
 import time
+import random
 import urllib.request
 import psycopg2
 
@@ -374,11 +375,12 @@ def handler(event: dict, context) -> dict:
             s3.put_object(Bucket="files", Key=key, Body=raw, ContentType=content_type)
             cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
 
+            rand_likes = random.randint(100, 1000)
             conn = get_db()
             cur = conn.cursor()
             cur.execute(
-                f"INSERT INTO {schema}.media (title, description, type, url, tier) VALUES (%s, %s, %s, %s, %s) RETURNING id",
-                (title or None, description or None, media_type, cdn_url, tier)
+                f"INSERT INTO {schema}.media (title, description, type, url, tier, likes_count) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
+                (title or None, description or None, media_type, cdn_url, tier, rand_likes)
             )
             new_id = cur.fetchone()[0]
             conn.commit()
@@ -419,6 +421,7 @@ def handler(event: dict, context) -> dict:
     # ── GET MEDIA (публичный) ────────────────────────────────────────────
     if action == "get_media":
         payload = get_token_payload(event)
+        user_id = payload["sub"] if payload else None
         user_tier = None
         if payload:
             sub = get_subscription(payload["sub"], schema)
@@ -433,34 +436,41 @@ def handler(event: dict, context) -> dict:
 
         if media_id:
             cur.execute(
-                f"SELECT id, title, description, type, url, thumbnail_url, tier, is_published, sort_order, created_at "
+                f"SELECT id, title, description, type, url, thumbnail_url, tier, is_published, sort_order, created_at, likes_count "
                 f"FROM {schema}.media WHERE id = %s AND is_published = true",
                 (int(media_id),)
             )
             row = cur.fetchone()
-            conn.close()
             if not row:
+                conn.close()
                 return err("Not found", 404)
+            user_liked = False
+            if user_id:
+                cur.execute(f"SELECT 1 FROM {schema}.media_likes WHERE media_id=%s AND user_id=%s", (row[0], user_id))
+                user_liked = cur.fetchone() is not None
+            conn.close()
+            locked = row[6] != "free" and user_tier not in (["photo", "vip"] if row[6] == "photo" else ["vip"])
             item = {
                 "id": row[0], "title": row[1], "description": row[2],
                 "type": row[3], "tier": row[6],
+                "url": row[4] if not locked else None,
+                "thumbnail_url": row[5],
                 "is_published": row[7], "sort_order": row[8],
                 "created_at": str(row[9]),
-                "locked": row[6] != "free" and user_tier not in (["photo", "vip"] if row[6] == "photo" else ["vip"]),
+                "likes_count": row[10], "user_liked": user_liked,
+                "locked": locked,
             }
-            if not item["locked"]:
-                item["url"] = row[4]
-                item["thumbnail_url"] = row[5]
-            else:
-                item["url"] = None
-                item["thumbnail_url"] = row[5]
             return ok({"item": item})
 
         cur.execute(
-            f"SELECT id, title, description, type, url, thumbnail_url, tier, is_published, sort_order, created_at "
+            f"SELECT id, title, description, type, url, thumbnail_url, tier, is_published, sort_order, created_at, likes_count "
             f"FROM {schema}.media WHERE is_published = true ORDER BY sort_order DESC, created_at DESC"
         )
         rows = cur.fetchall()
+        liked_ids = set()
+        if user_id:
+            cur.execute(f"SELECT media_id FROM {schema}.media_likes WHERE user_id=%s", (user_id,))
+            liked_ids = {r[0] for r in cur.fetchall()}
         conn.close()
         items = []
         for row in rows:
@@ -478,7 +488,34 @@ def handler(event: dict, context) -> dict:
                 "thumbnail_url": row[5],
                 "tier": tier_req, "locked": locked,
                 "sort_order": row[8], "created_at": str(row[9]),
+                "likes_count": row[10], "user_liked": row[0] in liked_ids,
             })
         return ok({"items": items, "total": len(items)})
+
+    # ── TOGGLE LIKE ──────────────────────────────────────────────────────
+    if action == "toggle_like" and method == "POST":
+        payload = get_token_payload(event)
+        if not payload:
+            return err("Unauthorized", 401)
+        user_id = payload["sub"]
+        media_id = body.get("media_id")
+        if not media_id:
+            return err("media_id required")
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(f"SELECT 1 FROM {schema}.media_likes WHERE media_id=%s AND user_id=%s", (int(media_id), user_id))
+        existing = cur.fetchone()
+        if existing:
+            cur.execute(f"DELETE FROM {schema}.media_likes WHERE media_id=%s AND user_id=%s", (int(media_id), user_id))
+            cur.execute(f"UPDATE {schema}.media SET likes_count = GREATEST(0, likes_count - 1) WHERE id=%s RETURNING likes_count", (int(media_id),))
+            liked = False
+        else:
+            cur.execute(f"INSERT INTO {schema}.media_likes (media_id, user_id) VALUES (%s, %s)", (int(media_id), user_id))
+            cur.execute(f"UPDATE {schema}.media SET likes_count = likes_count + 1 WHERE id=%s RETURNING likes_count", (int(media_id),))
+            liked = True
+        new_count = cur.fetchone()[0]
+        conn.commit()
+        conn.close()
+        return ok({"liked": liked, "likes_count": new_count})
 
     return err("Unknown action. Use ?action=register|login|me|google", 404)
