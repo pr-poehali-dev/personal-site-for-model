@@ -151,6 +151,14 @@ export default function Index() {
               Blog
             </button>
           </li>
+          <li>
+            <button
+              onClick={() => navigate("/feed")}
+              className="nav-link text-sm tracking-widest uppercase font-golos transition-colors duration-200 text-muted-foreground hover:text-foreground"
+            >
+              Feed
+            </button>
+          </li>
         </ul>
         {/* Auth controls */}
         {user ? (
@@ -274,7 +282,13 @@ export default function Index() {
         <div className="text-center mb-16 scroll-reveal">
           <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-3">Latest</p>
           <h2 className="font-cormorant text-5xl md:text-6xl font-light text-gold-gradient">Feed</h2>
-          <div className="h-px w-16 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent mt-4" />
+          <div className="h-px w-16 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent mt-4 mb-6" />
+          <button
+            onClick={() => navigate("/feed")}
+            className="text-xs font-golos tracking-widest uppercase px-6 py-2.5 border border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+          >
+            Open full feed →
+          </button>
         </div>
 
         <div className="columns-2 md:columns-3 gap-3 space-y-3">
@@ -282,13 +296,17 @@ export default function Index() {
             const unlocked = !item.locked || hasTier(user, "photo");
             const feedImgs = feedItems.filter(f => !f.locked || hasTier(user, "photo")).map(f => f.img);
             return (
-            <div key={item.id} className="break-inside-avoid relative group card-lift rounded-lg overflow-hidden scroll-reveal" style={{ animationDelay: `${i * 0.08}s` }}>
+            <div
+              key={item.id}
+              className="break-inside-avoid relative group card-lift rounded-lg overflow-hidden scroll-reveal cursor-pointer"
+              style={{ animationDelay: `${i * 0.08}s` }}
+              onClick={() => unlocked ? navigate(`/feed/${item.id}`) : scrollTo("subscribe")}
+            >
               <div className="relative">
                 <img
                   src={item.img}
                   alt=""
-                  onClick={() => unlocked && setLightbox({ imgs: feedImgs, idx: feedImgs.indexOf(item.img) })}
-                  className={`w-full object-cover transition-transform duration-700 group-hover:scale-105 ${item.locked && !hasTier(user, "photo") ? "content-locked" : "cursor-pointer"}`}
+                  className={`w-full object-cover transition-transform duration-700 group-hover:scale-105 ${item.locked && !hasTier(user, "photo") ? "content-locked" : ""}`}
                   style={{ aspectRatio: i % 3 === 0 ? "3/4" : "4/5" }}
                 />
                 <div className="absolute top-3 left-3">
@@ -301,15 +319,7 @@ export default function Index() {
                     <div className="w-10 h-10 rounded-full border border-primary/40 flex items-center justify-center mb-2 bg-background/60">
                       <Icon name="Lock" size={16} className="text-primary" />
                     </div>
-                    {user ? (
-                      <button onClick={() => scrollTo("subscribe")} className="text-xs font-golos text-primary tracking-wider hover:text-primary/80 transition-colors">
-                        Subscribe to unlock
-                      </button>
-                    ) : (
-                      <button onClick={() => openAuth("register")} className="text-xs font-golos text-primary tracking-wider hover:text-primary/80 transition-colors">
-                        Sign in to unlock
-                      </button>
-                    )}
+                    <span className="text-xs font-golos text-primary tracking-wider">Subscribe to unlock</span>
                   </div>
                 )}
                 {unlocked && (

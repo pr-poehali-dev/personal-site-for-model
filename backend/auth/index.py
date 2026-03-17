@@ -416,4 +416,69 @@ def handler(event: dict, context) -> dict:
 
         return err("Unknown admin action", 404)
 
+    # ── GET MEDIA (публичный) ────────────────────────────────────────────
+    if action == "get_media":
+        payload = get_token_payload(event)
+        user_tier = None
+        if payload:
+            sub = get_subscription(payload["sub"], schema)
+            if sub and sub["status"] == "active":
+                user_tier = sub["tier"]
+            if payload.get("role") == "admin":
+                user_tier = "vip"
+
+        media_id = params.get("id")
+        conn = get_db()
+        cur = conn.cursor()
+
+        if media_id:
+            cur.execute(
+                f"SELECT id, title, description, type, url, thumbnail_url, tier, is_published, sort_order, created_at "
+                f"FROM {schema}.media WHERE id = %s AND is_published = true",
+                (int(media_id),)
+            )
+            row = cur.fetchone()
+            conn.close()
+            if not row:
+                return err("Not found", 404)
+            item = {
+                "id": row[0], "title": row[1], "description": row[2],
+                "type": row[3], "tier": row[6],
+                "is_published": row[7], "sort_order": row[8],
+                "created_at": str(row[9]),
+                "locked": row[6] != "free" and user_tier not in (["photo", "vip"] if row[6] == "photo" else ["vip"]),
+            }
+            if not item["locked"]:
+                item["url"] = row[4]
+                item["thumbnail_url"] = row[5]
+            else:
+                item["url"] = None
+                item["thumbnail_url"] = row[5]
+            return ok({"item": item})
+
+        cur.execute(
+            f"SELECT id, title, description, type, url, thumbnail_url, tier, is_published, sort_order, created_at "
+            f"FROM {schema}.media WHERE is_published = true ORDER BY sort_order DESC, created_at DESC"
+        )
+        rows = cur.fetchall()
+        conn.close()
+        items = []
+        for row in rows:
+            tier_req = row[6]
+            if tier_req == "free":
+                locked = False
+            elif tier_req == "photo":
+                locked = user_tier not in ["photo", "vip"]
+            else:
+                locked = user_tier != "vip"
+            items.append({
+                "id": row[0], "title": row[1], "description": row[2],
+                "type": row[3],
+                "url": row[4] if not locked else None,
+                "thumbnail_url": row[5],
+                "tier": tier_req, "locked": locked,
+                "sort_order": row[8], "created_at": str(row[9]),
+            })
+        return ok({"items": items, "total": len(items)})
+
     return err("Unknown action. Use ?action=register|login|me|google", 404)

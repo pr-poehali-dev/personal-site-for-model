@@ -134,6 +134,8 @@ export default function Admin() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadTier, setUploadTier] = useState<"free" | "photo" | "vip">("free");
+  const [uploadTitle, setUploadTitle] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
@@ -189,11 +191,13 @@ export default function Admin() {
         filename: file.name,
         content_type: file.type,
         type: isVideo ? "video" : "photo",
-        tier: "free",
+        tier: uploadTier,
+        title: uploadTitle || null,
       });
       setUploading(false);
       if (res.id) {
         toast.success("Файл загружен");
+        setUploadTitle("");
         loadMedia();
       } else {
         toast.error(res.error || "Ошибка загрузки");
@@ -391,17 +395,40 @@ export default function Admin() {
           {/* MEDIA */}
           {tab === "media" && (
             <div>
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4">
                 <h2 className="font-cormorant text-2xl text-foreground">
                   Медиа <span className="text-muted-foreground text-lg">({media.length})</span>
                 </h2>
+              </div>
+
+              {/* Upload panel */}
+              <div className="bg-card border border-border rounded-2xl p-5 mb-6">
+                <p className="text-sm font-medium text-foreground mb-3">Загрузить фото / видео</p>
+                <div className="flex flex-col sm:flex-row gap-3 mb-3">
+                  <input
+                    type="text"
+                    placeholder="Название (необязательно)"
+                    value={uploadTitle}
+                    onChange={(e) => setUploadTitle(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary"
+                  />
+                  <select
+                    value={uploadTier}
+                    onChange={(e) => setUploadTier(e.target.value as "free" | "photo" | "vip")}
+                    className="px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground focus:outline-none focus:border-primary"
+                  >
+                    <option value="free">🌐 Бесплатно (всем)</option>
+                    <option value="photo">🔒 Подписчики ($3.99)</option>
+                    <option value="vip">⭐ VIP</option>
+                  </select>
+                </div>
                 <button
                   onClick={() => fileRef.current?.click()}
                   disabled={uploading}
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
                   <Icon name="Upload" size={16} />
-                  {uploading ? "Загрузка..." : "Загрузить файл"}
+                  {uploading ? "Загружаю..." : "Выбрать файл"}
                 </button>
                 <input
                   ref={fileRef}
@@ -413,12 +440,9 @@ export default function Admin() {
               </div>
 
               {media.length === 0 ? (
-                <div
-                  onClick={() => fileRef.current?.click()}
-                  className="border-2 border-dashed border-border rounded-2xl p-16 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                >
-                  <Icon name="Upload" size={32} className="text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground">Нажми, чтобы загрузить фото или видео</p>
+                <div className="border-2 border-dashed border-border rounded-2xl p-16 text-center">
+                  <Icon name="Image" size={32} className="text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground text-sm">Загрузи первое фото или видео</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -432,11 +456,17 @@ export default function Admin() {
                         <img src={item.url} alt={item.title || ""} className="aspect-square object-cover w-full" />
                       )}
                       <div className="p-3">
-                        <p className="text-xs text-muted-foreground truncate">{item.title || "Без названия"}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{item.tier}</span>
-                          <span className={`text-xs px-1.5 py-0.5 rounded ${item.type === "video" ? "bg-purple-500/20 text-purple-400" : "bg-blue-500/20 text-blue-400"}`}>
-                            {item.type}
+                        <p className="text-xs text-foreground truncate font-medium">{item.title || "Без названия"}</p>
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                            item.tier === "free" ? "bg-green-500/20 text-green-400" :
+                            item.tier === "vip" ? "bg-yellow-500/20 text-yellow-400" :
+                            "bg-primary/20 text-primary"
+                          }`}>
+                            {item.tier === "free" ? "Бесплатно" : item.tier === "vip" ? "VIP" : "Платно"}
+                          </span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${item.type === "video" ? "bg-purple-500/20 text-purple-400" : "bg-blue-500/20 text-blue-400"}`}>
+                            {item.type === "video" ? "видео" : "фото"}
                           </span>
                         </div>
                       </div>
@@ -456,6 +486,14 @@ export default function Admin() {
                           <Icon name="Trash2" size={13} />
                         </button>
                       </div>
+                      {/* Tier badge top-left */}
+                      {item.tier !== "free" && (
+                        <div className="absolute top-2 left-2">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-background/80 backdrop-blur-sm text-primary font-medium">
+                            {item.tier === "vip" ? "VIP" : "🔒"}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

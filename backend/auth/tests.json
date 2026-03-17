@@ -48,6 +48,14 @@
       "method": "OPTIONS",
       "path": "/",
       "expectedStatus": 200
+    },
+    {
+      "name": "Get media list (public)",
+      "method": "GET",
+      "path": "/?action=get_media",
+      "expectedStatus": 200,
+      "expectedBody": {"items": [], "total": 0},
+      "bodyMatcher": "partial"
     }
   ]
 }
