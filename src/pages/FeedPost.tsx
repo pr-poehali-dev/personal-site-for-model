@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import AuthModal from "@/components/AuthModal";
@@ -16,6 +16,16 @@ interface MediaItem {
   tier: string;
   locked: boolean;
   created_at: string;
+  likes_count: number;
+  user_liked: boolean;
+}
+
+interface Comment {
+  id: number;
+  text: string;
+  rand_likes: number;
+  created_at: string;
+  author: string;
 }
 
 export default function FeedPost() {
@@ -27,12 +37,15 @@ export default function FeedPost() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentText, setCommentText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [liking, setLiking] = useState(false);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const token = getToken();
-    if (token) {
-      getMe(token).then(setUser).catch(() => clearToken());
-    }
+    if (token) getMe(token).then(setUser).catch(() => clearToken());
   }, []);
 
   useEffect(() => {
@@ -46,36 +59,68 @@ export default function FeedPost() {
       .finally(() => setLoading(false));
   }, [id, user]);
 
-  const logout = () => {
-    clearToken();
-    setUser(null);
-    setUserMenuOpen(false);
+  useEffect(() => {
+    if (!id) return;
+    fetch(`${AUTH_URL}/?action=get_comments&media_id=${id}`)
+      .then((r) => r.json())
+      .then((data) => setComments(data.comments || []));
+  }, [id]);
+
+  const logout = () => { clearToken(); setUser(null); setUserMenuOpen(false); };
+  const onAuthSuccess = (u: User) => { setUser(u); setAuthOpen(false); };
+
+  const toggleLike = async () => {
+    if (!item) return;
+    const token = getToken();
+    if (!token || !user) { setAuthMode("login"); setAuthOpen(true); return; }
+    if (liking) return;
+    setLiking(true);
+    setItem((prev) => prev ? { ...prev, user_liked: !prev.user_liked, likes_count: prev.user_liked ? prev.likes_count - 1 : prev.likes_count + 1 } : prev);
+    try {
+      const res = await fetch(`${AUTH_URL}/?action=toggle_like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ media_id: item.id }),
+      });
+      const data = await res.json();
+      setItem((prev) => prev ? { ...prev, likes_count: data.likes_count, user_liked: data.liked } : prev);
+    } finally {
+      setLiking(false);
+    }
   };
 
-  const onAuthSuccess = (u: User) => {
-    setUser(u);
-    setAuthOpen(false);
+  const submitComment = async () => {
+    const text = commentText.trim();
+    if (!text || !id) return;
+    const token = getToken();
+    if (!token || !user) { setAuthMode("login"); setAuthOpen(true); return; }
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${AUTH_URL}/?action=add_comment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ media_id: parseInt(id), text }),
+      });
+      const data = await res.json();
+      if (data.id) {
+        setComments((prev) => [data, ...prev]);
+        setCommentText("");
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f5f0e8" }}>
-      <AuthModal
-        open={authOpen}
-        mode={authMode}
-        onClose={() => setAuthOpen(false)}
-        onSuccess={onAuthSuccess}
-        onSwitchMode={(m) => setAuthMode(m)}
-      />
+      <AuthModal open={authOpen} mode={authMode} onClose={() => setAuthOpen(false)} onSuccess={onAuthSuccess} onSwitchMode={(m) => setAuthMode(m)} />
 
       {/* Nav */}
       <nav className="sticky top-0 z-50 px-6 py-4 flex items-center justify-between backdrop-blur-sm border-b" style={{ backgroundColor: "rgba(245,240,232,0.9)", borderColor: "#d4c9b0" }}>
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 font-golos text-sm transition-colors" style={{ color: "#8b7355" }}>
-          <Icon name="ArrowLeft" size={16} />
-          Back
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 font-golos text-sm" style={{ color: "#8b7355" }}>
+          <Icon name="ArrowLeft" size={16} /> Back
         </button>
-        <Link to="/" className="font-cormorant text-xl font-light" style={{ color: "#8b7355" }}>
-          Mia Rey
-        </Link>
+        <Link to="/" className="font-cormorant text-xl font-light" style={{ color: "#8b7355" }}>Mia Rey</Link>
         <div className="flex items-center gap-4">
           {user ? (
             <div className="relative">
@@ -108,65 +153,142 @@ export default function FeedPost() {
             <Link to="/feed" className="text-sm font-golos underline" style={{ color: "#8b7355" }}>Back to feed</Link>
           </div>
         ) : (
-          <div className="rounded-2xl overflow-hidden border shadow-sm" style={{ backgroundColor: "#fff8f0", borderColor: "#e8ddd0" }}>
-            {/* Media */}
-            <div className="relative w-full" style={{ aspectRatio: item.type === "video" ? "16/9" : "4/5" }}>
-              {item.locked ? (
-                <>
-                  {item.thumbnail_url && (
-                    <img src={item.thumbnail_url} alt="" className="w-full h-full object-cover" style={{ filter: "blur(14px) brightness(0.65)", transform: "scale(1.1)" }} />
-                  )}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-                    <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(245,240,232,0.9)" }}>
-                      <Icon name="Lock" size={24} style={{ color: "#8b7355" } as React.CSSProperties} />
+          <>
+            <div className="rounded-2xl overflow-hidden border shadow-sm mb-4" style={{ backgroundColor: "#fff8f0", borderColor: "#e8ddd0" }}>
+              {/* Media */}
+              <div className="relative w-full" style={{ aspectRatio: item.type === "video" ? "16/9" : "4/5" }}>
+                {item.locked ? (
+                  <>
+                    {item.thumbnail_url && <img src={item.thumbnail_url} alt="" className="w-full h-full object-cover" style={{ filter: "blur(14px) brightness(0.65)", transform: "scale(1.1)" }} />}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                      <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(245,240,232,0.9)" }}>
+                        <Icon name="Lock" size={24} style={{ color: "#8b7355" } as React.CSSProperties} />
+                      </div>
+                      <p className="font-cormorant text-2xl text-white font-light">{item.tier === "vip" ? "VIP Content" : "Exclusive Content"}</p>
+                      <div className="flex flex-col gap-2 mt-2 w-48">
+                        <a href="https://www.fanvue.com/miarey" target="_blank" rel="noopener noreferrer" className="w-full py-2.5 text-xs font-golos tracking-widest uppercase rounded-full text-center" style={{ backgroundColor: "#8b7355", color: "#fff" }}>Subscribe on Fanvue</a>
+                        <a href="https://boosty.to/miarey" target="_blank" rel="noopener noreferrer" className="w-full py-2.5 text-xs font-golos tracking-widest uppercase rounded-full text-center border" style={{ borderColor: "rgba(255,255,255,0.5)", color: "#fff" }}>Subscribe on Boosty</a>
+                      </div>
                     </div>
-                    <p className="font-cormorant text-2xl text-white font-light">
-                      {item.tier === "vip" ? "VIP Content" : "Exclusive Content"}
+                  </>
+                ) : item.type === "video" && item.url ? (
+                  <video src={item.url} controls className="w-full h-full object-contain" style={{ backgroundColor: "#000" }} />
+                ) : item.url ? (
+                  <img src={item.url} alt={item.title || ""} className="w-full h-full object-cover" />
+                ) : null}
+              </div>
+
+              {/* Info + likes */}
+              <div className="px-5 py-4">
+                <div className="flex items-start justify-between gap-4 mb-2">
+                  <div className="flex-1">
+                    {item.title && <h1 className="font-cormorant text-2xl font-light mb-1" style={{ color: "#5c4a32" }}>{item.title}</h1>}
+                    <p className="font-golos text-xs" style={{ color: "#b8a882" }}>
+                      {new Date(item.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                     </p>
-                    <p className="font-golos text-xs text-white/70 uppercase tracking-widest">
-                      {item.tier === "vip" ? "Available for VIP subscribers" : "Available for subscribers"}
-                    </p>
-                    <div className="flex flex-col gap-2 mt-2 w-48">
-                      <a href="https://www.fanvue.com/miarey" target="_blank" rel="noopener noreferrer"
-                        className="w-full py-2.5 text-xs font-golos tracking-widest uppercase rounded-full text-center transition-all"
-                        style={{ backgroundColor: "#8b7355", color: "#fff" }}>
-                        Subscribe on Fanvue
-                      </a>
-                      <a href="https://boosty.to/miarey" target="_blank" rel="noopener noreferrer"
-                        className="w-full py-2.5 text-xs font-golos tracking-widest uppercase rounded-full text-center border transition-all"
-                        style={{ borderColor: "rgba(255,255,255,0.5)", color: "#fff" }}>
-                        Subscribe on Boosty
-                      </a>
+                  </div>
+                  <button
+                    onClick={toggleLike}
+                    disabled={liking}
+                    className="flex items-center gap-1.5 pt-1 transition-all disabled:opacity-50 group shrink-0"
+                    style={{ color: item.user_liked ? "#e8a0b0" : "#b8a882" }}
+                  >
+                    <span className="text-2xl leading-none transition-transform group-active:scale-125">{item.user_liked ? "♥" : "♡"}</span>
+                    <span className="font-golos text-sm tabular-nums">{item.likes_count.toLocaleString()}</span>
+                  </button>
+                </div>
+                {item.description && (
+                  <p className="font-golos text-sm leading-relaxed mt-3 pt-3 border-t" style={{ color: "#7a6548", borderColor: "#e8ddd0" }}>{item.description}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Comments */}
+            <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: "#fff8f0", borderColor: "#e8ddd0" }}>
+              <div className="px-5 py-4 border-b" style={{ borderColor: "#e8ddd0" }}>
+                <h2 className="font-cormorant text-xl font-light" style={{ color: "#5c4a32" }}>
+                  Comments <span className="font-golos text-sm" style={{ color: "#b8a882" }}>({comments.length})</span>
+                </h2>
+              </div>
+
+              {/* Add comment */}
+              {user ? (
+                <div className="px-5 py-4 border-b" style={{ borderColor: "#e8ddd0" }}>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium shrink-0 mt-1" style={{ color: "#8b7355" }}>
+                      {(user.name || user.email)[0].toUpperCase()}
+                    </div>
+                    <div className="flex-1">
+                      <textarea
+                        ref={commentInputRef}
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submitComment(); } }}
+                        placeholder="Write a comment..."
+                        rows={2}
+                        className="w-full text-sm font-golos resize-none rounded-xl px-3 py-2.5 border focus:outline-none focus:border-primary/50 transition-colors"
+                        style={{ backgroundColor: "#f5f0e8", borderColor: "#e0d5c5", color: "#5c4a32" }}
+                      />
+                      <div className="flex justify-end mt-2">
+                        <button
+                          onClick={submitComment}
+                          disabled={submitting || !commentText.trim()}
+                          className="px-4 py-1.5 text-xs font-golos tracking-widest uppercase rounded-full transition-all disabled:opacity-40"
+                          style={{ backgroundColor: "#8b7355", color: "#fff" }}
+                        >
+                          {submitting ? "..." : "Post"}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </>
-              ) : item.type === "video" && item.url ? (
-                <video src={item.url} controls className="w-full h-full object-contain" style={{ backgroundColor: "#000" }} />
-              ) : item.url ? (
-                <img src={item.url} alt={item.title || ""} className="w-full h-full object-cover" />
-              ) : null}
-            </div>
+                </div>
+              ) : (
+                <div className="px-5 py-4 border-b text-center" style={{ borderColor: "#e8ddd0" }}>
+                  <p className="font-golos text-sm mb-2" style={{ color: "#a0916e" }}>Sign in to leave a comment</p>
+                  <button onClick={() => { setAuthMode("login"); setAuthOpen(true); }} className="px-4 py-1.5 text-xs font-golos tracking-widest uppercase rounded-full border" style={{ borderColor: "#d4c9b0", color: "#8b7355" }}>
+                    Sign in
+                  </button>
+                </div>
+              )}
 
-            {/* Info */}
-            <div className="px-5 py-4">
-              {item.title && (
-                <h1 className="font-cormorant text-2xl font-light mb-1" style={{ color: "#5c4a32" }}>{item.title}</h1>
-              )}
-              <p className="font-golos text-xs mb-3" style={{ color: "#b8a882" }}>
-                {new Date(item.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-              </p>
-              {item.description && (
-                <p className="font-golos text-sm leading-relaxed" style={{ color: "#7a6548" }}>{item.description}</p>
-              )}
+              {/* Comments list */}
+              <div className="divide-y" style={{ borderColor: "#e8ddd0" }}>
+                {comments.length === 0 ? (
+                  <div className="px-5 py-8 text-center">
+                    <p className="font-cormorant text-lg" style={{ color: "#c4a35a" }}>✦</p>
+                    <p className="font-golos text-sm mt-1" style={{ color: "#b8a882" }}>Be the first to comment</p>
+                  </div>
+                ) : (
+                  comments.map((c) => (
+                    <div key={c.id} className="px-5 py-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0" style={{ backgroundColor: "#f0e8d8", color: "#8b7355" }}>
+                          {c.author[0].toUpperCase()}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-golos text-xs font-medium" style={{ color: "#7a6548" }}>{c.author}</span>
+                            <span className="font-golos text-xs" style={{ color: "#c4b89a" }}>
+                              {new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            </span>
+                          </div>
+                          <p className="font-golos text-sm leading-relaxed" style={{ color: "#5c4a32" }}>{c.text}</p>
+                          <div className="flex items-center gap-1 mt-2" style={{ color: "#c4b89a" }}>
+                            <span className="text-sm">♡</span>
+                            <span className="font-golos text-xs">{c.rand_likes}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
+          </>
         )}
 
-        {/* Back to feed */}
         <div className="text-center mt-8">
-          <Link to="/feed" className="font-golos text-sm underline-offset-4 hover:underline" style={{ color: "#a0916e" }}>
-            ← Back to feed
-          </Link>
+          <Link to="/feed" className="font-golos text-sm hover:underline" style={{ color: "#a0916e" }}>← Back to feed</Link>
         </div>
       </div>
     </div>

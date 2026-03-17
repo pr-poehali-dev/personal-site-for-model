@@ -136,6 +136,7 @@ export default function Admin() {
   const [uploading, setUploading] = useState(false);
   const [uploadTier, setUploadTier] = useState<"free" | "photo" | "vip">("free");
   const [uploadTitle, setUploadTitle] = useState("");
+  const [uploadDescription, setUploadDescription] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
@@ -193,11 +194,13 @@ export default function Admin() {
         type: isVideo ? "video" : "photo",
         tier: uploadTier,
         title: uploadTitle || null,
+        description: uploadDescription || null,
       });
       setUploading(false);
       if (res.id) {
         toast.success("Файл загружен");
         setUploadTitle("");
+        setUploadDescription("");
         loadMedia();
       } else {
         toast.error(res.error || "Ошибка загрузки");
@@ -422,6 +425,13 @@ export default function Admin() {
                     <option value="vip">⭐ VIP</option>
                   </select>
                 </div>
+                <textarea
+                  placeholder="Описание / подпись к фото (необязательно)"
+                  value={uploadDescription}
+                  onChange={(e) => setUploadDescription(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary resize-none mb-3"
+                />
                 <button
                   onClick={() => fileRef.current?.click()}
                   disabled={uploading}

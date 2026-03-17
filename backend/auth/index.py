@@ -518,4 +518,59 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return ok({"liked": liked, "likes_count": new_count})
 
+    # ── GET COMMENTS ─────────────────────────────────────────────────────
+    if action == "get_comments":
+        media_id = params.get("media_id")
+        if not media_id:
+            return err("media_id required")
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            f"SELECT c.id, c.text, c.rand_likes, c.created_at, u.name, u.email "
+            f"FROM {schema}.media_comments c "
+            f"JOIN {schema}.users u ON u.id = c.user_id "
+            f"WHERE c.media_id = %s ORDER BY c.created_at DESC",
+            (int(media_id),)
+        )
+        rows = cur.fetchall()
+        conn.close()
+        comments = []
+        for r in rows:
+            name = r[4] or r[5].split("@")[0]
+            comments.append({
+                "id": r[0], "text": r[1], "rand_likes": r[2],
+                "created_at": str(r[3]), "author": name,
+            })
+        return ok({"comments": comments})
+
+    # ── ADD COMMENT ──────────────────────────────────────────────────────
+    if action == "add_comment" and method == "POST":
+        payload = get_token_payload(event)
+        if not payload:
+            return err("Unauthorized", 401)
+        user_id = payload["sub"]
+        media_id = body.get("media_id")
+        text = (body.get("text") or "").strip()
+        if not media_id or not text:
+            return err("media_id and text required")
+        if len(text) > 500:
+            return err("Text too long")
+        rand_likes = random.randint(1, 48)
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            f"INSERT INTO {schema}.media_comments (media_id, user_id, text, rand_likes) VALUES (%s, %s, %s, %s) RETURNING id, created_at",
+            (int(media_id), user_id, text, rand_likes)
+        )
+        row = cur.fetchone()
+        cur.execute(f"SELECT name, email FROM {schema}.users WHERE id=%s", (user_id,))
+        urow = cur.fetchone()
+        conn.commit()
+        conn.close()
+        name = urow[0] or urow[1].split("@")[0]
+        return ok({
+            "id": row[0], "text": text, "rand_likes": rand_likes,
+            "created_at": str(row[1]), "author": name,
+        }, 201)
+
     return err("Unknown action. Use ?action=register|login|me|google", 404)
