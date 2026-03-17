@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import AuthModal from "@/components/AuthModal";
-import { getToken, getMe, clearToken, User } from "@/lib/auth";
+import { getToken, getMe, clearToken, hasTier, User } from "@/lib/auth";
 
 const IMG_HERO = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/bccf737b-8f5b-42a2-9a41-331473009369.jpg";
 const IMG_ABOUT = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/files/8c29e61e-79ab-4828-9cca-4d1338afb7a3.jpg";
