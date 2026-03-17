@@ -5,6 +5,7 @@ import AuthModal from "@/components/AuthModal";
 import { getToken, getMe, clearToken, User } from "@/lib/auth";
 
 const AUTH_URL = "https://functions.poehali.dev/0f69b8f2-267a-4d9e-b597-2ba21b26ce35";
+const PROFILE_IMG = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/045f7fee-76e7-46a2-b619-34043d12fc5e.jpg";
 
 interface MediaItem {
   id: number;
@@ -71,9 +72,7 @@ export default function Feed() {
 
   useEffect(() => {
     const token = getToken();
-    if (token) {
-      getMe(token).then(setUser).catch(() => clearToken());
-    }
+    if (token) getMe(token).then(setUser).catch(() => clearToken());
   }, []);
 
   useEffect(() => {
@@ -81,30 +80,16 @@ export default function Feed() {
     fetchMedia(token).then(setItems).finally(() => setLoading(false));
   }, [user]);
 
-  const logout = () => {
-    clearToken();
-    setUser(null);
-    setUserMenuOpen(false);
-  };
-
-  const onAuthSuccess = (u: User) => {
-    setUser(u);
-    setAuthOpen(false);
-  };
+  const logout = () => { clearToken(); setUser(null); setUserMenuOpen(false); };
+  const onAuthSuccess = (u: User) => { setUser(u); setAuthOpen(false); };
 
   const toggleLike = async (item: MediaItem) => {
     const token = getToken();
-    if (!token || !user) {
-      setAuthMode("login");
-      setAuthOpen(true);
-      return;
-    }
+    if (!token || !user) { setAuthMode("login"); setAuthOpen(true); return; }
     if (likingIds.has(item.id)) return;
     setLikingIds((prev) => new Set(prev).add(item.id));
     setItems((prev) => prev.map((i) =>
-      i.id === item.id
-        ? { ...i, user_liked: !i.user_liked, likes_count: i.user_liked ? i.likes_count - 1 : i.likes_count + 1 }
-        : i
+      i.id === item.id ? { ...i, user_liked: !i.user_liked, likes_count: i.user_liked ? i.likes_count - 1 : i.likes_count + 1 } : i
     ));
     try {
       await fetch(`${AUTH_URL}/?action=toggle_like`, {
@@ -114,60 +99,36 @@ export default function Feed() {
       });
     } catch {
       setItems((prev) => prev.map((i) =>
-        i.id === item.id
-          ? { ...i, user_liked: item.user_liked, likes_count: item.likes_count }
-          : i
+        i.id === item.id ? { ...i, user_liked: item.user_liked, likes_count: item.likes_count } : i
       ));
     } finally {
       setLikingIds((prev) => { const s = new Set(prev); s.delete(item.id); return s; });
     }
   };
 
+  const totalLikes = items.reduce((sum, i) => sum + i.likes_count, 0);
+
   return (
     <div className="min-h-screen relative overflow-x-hidden" style={{ backgroundColor: "#f5f0e8" }}>
-      <AuthModal
-        open={authOpen}
-        mode={authMode}
-        onClose={() => setAuthOpen(false)}
-        onSuccess={onAuthSuccess}
-        onSwitchMode={(m) => setAuthMode(m)}
-      />
+      <AuthModal open={authOpen} mode={authMode} onClose={() => setAuthOpen(false)} onSuccess={onAuthSuccess} onSwitchMode={(m) => setAuthMode(m)} />
 
       {/* Граффити слева */}
       <div className="fixed left-0 top-0 h-full w-36 pointer-events-none select-none overflow-hidden z-0 hidden lg:block">
         {GRAFFITI_LEFT.map((g, i) => (
-          <span key={i} className="absolute" style={{
-            top: g.top, left: g.left,
-            fontSize: g.size, color: g.color,
-            opacity: g.opacity,
-            transform: `rotate(${g.rotate})`,
-            fontFamily: g.script ? "'Dancing Script', cursive" : "inherit",
-            fontWeight: g.script ? 700 : 400,
-            lineHeight: 1,
-          }}>{g.text}</span>
+          <span key={i} className="absolute" style={{ top: g.top, left: g.left, fontSize: g.size, color: g.color, opacity: g.opacity, transform: `rotate(${g.rotate})`, fontFamily: g.script ? "'Dancing Script', cursive" : "inherit", fontWeight: g.script ? 700 : 400, lineHeight: 1 }}>{g.text}</span>
         ))}
       </div>
 
       {/* Граффити справа */}
       <div className="fixed right-0 top-0 h-full w-36 pointer-events-none select-none overflow-hidden z-0 hidden lg:block">
         {GRAFFITI_RIGHT.map((g, i) => (
-          <span key={i} className="absolute" style={{
-            top: g.top, right: g.right,
-            fontSize: g.size, color: g.color,
-            opacity: g.opacity,
-            transform: `rotate(${g.rotate})`,
-            fontFamily: g.script ? "'Dancing Script', cursive" : "inherit",
-            fontWeight: g.script ? 700 : 400,
-            lineHeight: 1,
-          }}>{g.text}</span>
+          <span key={i} className="absolute" style={{ top: g.top, right: g.right, fontSize: g.size, color: g.color, opacity: g.opacity, transform: `rotate(${g.rotate})`, fontFamily: g.script ? "'Dancing Script', cursive" : "inherit", fontWeight: g.script ? 700 : 400, lineHeight: 1 }}>{g.text}</span>
         ))}
       </div>
 
       {/* Nav */}
       <nav className="sticky top-0 z-50 px-6 py-4 flex items-center justify-between backdrop-blur-sm border-b" style={{ backgroundColor: "rgba(245,240,232,0.9)", borderColor: "#d4c9b0" }}>
-        <Link to="/" className="font-cormorant text-2xl font-light" style={{ color: "#8b7355" }}>
-          Mia Rey
-        </Link>
+        <Link to="/" className="font-cormorant text-2xl font-light" style={{ color: "#8b7355" }}>Mia Rey</Link>
         <div className="flex items-center gap-4">
           {user ? (
             <div className="relative">
@@ -183,19 +144,72 @@ export default function Feed() {
               )}
             </div>
           ) : (
-            <button onClick={() => { setAuthMode("login"); setAuthOpen(true); }} className="text-sm font-golos px-4 py-1.5 border rounded-full" style={{ color: "#8b7355", borderColor: "#d4c9b0" }}>
-              Sign in
-            </button>
+            <button onClick={() => { setAuthMode("login"); setAuthOpen(true); }} className="text-sm font-golos px-4 py-1.5 border rounded-full" style={{ color: "#8b7355", borderColor: "#d4c9b0" }}>Sign in</button>
           )}
         </div>
       </nav>
 
-      <div className="max-w-lg mx-auto px-4 py-8 relative z-10">
-        <div className="text-center mb-8">
-          <p className="font-golos text-xs tracking-[0.4em] uppercase mb-2" style={{ color: "#a0916e" }}>Latest content</p>
-          <h1 className="font-cormorant text-4xl font-light" style={{ color: "#5c4a32" }}>Feed</h1>
+      <div className="max-w-lg mx-auto px-0 pb-8 relative z-10">
+
+        {/* ── PROFILE HEADER ── */}
+        <div className="px-4 pt-6 pb-4">
+          {/* Avatar + stats */}
+          <div className="flex items-center gap-6 mb-4">
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              <div className="w-20 h-20 rounded-full p-0.5" style={{ background: "linear-gradient(135deg, #e8a0b0, #c4a35a, #d4956a)" }}>
+                <img src={PROFILE_IMG} alt="Mia Rey" className="w-full h-full rounded-full object-cover object-top" />
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="flex gap-6">
+              <div className="text-center">
+                <p className="font-cormorant text-xl font-semibold" style={{ color: "#5c4a32" }}>{items.length}</p>
+                <p className="font-golos text-xs" style={{ color: "#a0916e" }}>posts</p>
+              </div>
+              <div className="text-center">
+                <p className="font-cormorant text-xl font-semibold" style={{ color: "#5c4a32" }}>{totalLikes.toLocaleString()}</p>
+                <p className="font-golos text-xs" style={{ color: "#a0916e" }}>likes</p>
+              </div>
+              <div className="text-center">
+                <p className="font-cormorant text-xl font-semibold" style={{ color: "#5c4a32" }}>18+</p>
+                <p className="font-golos text-xs" style={{ color: "#a0916e" }}>content</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Name + bio */}
+          <p className="font-cormorant text-lg font-semibold mb-0.5" style={{ color: "#5c4a32" }}>Mia Rey ✦</p>
+          <p className="font-golos text-xs leading-relaxed mb-4" style={{ color: "#8b7355" }}>
+            Content creator · Exclusive 18+ photos & videos<br />
+            Subscribe for full access 🔒
+          </p>
+
+          {/* Subscribe banners */}
+          <div className="flex gap-2">
+            <a
+              href="https://www.fanvue.com/miarey"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-golos tracking-wider uppercase font-medium transition-all hover:opacity-90"
+              style={{ backgroundColor: "#8b7355", color: "#fff" }}
+            >
+              <span>🌸</span> Fanvue · $3.99
+            </a>
+            <a
+              href="https://boosty.to/miarey"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-golos tracking-wider uppercase font-medium border transition-all hover:bg-primary/10"
+              style={{ borderColor: "#d4c9b0", color: "#8b7355" }}
+            >
+              <span>🎀</span> Boosty
+            </a>
+          </div>
         </div>
 
+        {/* ── GRID ── */}
         {loading ? (
           <div className="flex justify-center py-20">
             <Icon name="Loader" size={24} className="animate-spin" style={{ color: "#a0916e" } as React.CSSProperties} />
@@ -205,124 +219,63 @@ export default function Feed() {
             <p className="font-golos text-sm" style={{ color: "#a0916e" }}>No content yet</p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {items.map((item) => (
-              <FeedCard
-                key={item.id}
-                item={item}
-                user={user}
-                onSubscribe={() => { setAuthMode("register"); setAuthOpen(true); }}
-                onClick={() => !item.locked && navigate(`/feed/${item.id}`)}
-                onLike={() => toggleLike(item)}
-                liking={likingIds.has(item.id)}
-                navigate={navigate}
-              />
-            ))}
+          <div className="grid grid-cols-3 gap-0.5">
+            {items.map((item) => {
+              const preview = item.thumbnail_url || item.url;
+              const isVideo = item.type === "video";
+              return (
+                <div
+                  key={item.id}
+                  className="relative group cursor-pointer overflow-hidden"
+                  style={{ aspectRatio: "1/1" }}
+                  onClick={() => navigate(`/feed/${item.id}`)}
+                >
+                  {/* Image / blur */}
+                  {preview ? (
+                    <img
+                      src={preview}
+                      alt=""
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      style={item.locked ? { filter: "blur(8px) brightness(0.6)", transform: "scale(1.1)" } : {}}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: "#e8ddd0" }}>
+                      <Icon name={isVideo ? "Play" : "Image"} size={24} style={{ color: "#a0916e" } as React.CSSProperties} />
+                    </div>
+                  )}
+
+                  {/* Lock badge */}
+                  {item.locked && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(245,240,232,0.85)" }}>
+                        <Icon name="Lock" size={14} style={{ color: "#8b7355" } as React.CSSProperties} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Video badge */}
+                  {isVideo && !item.locked && (
+                    <div className="absolute top-1.5 right-1.5">
+                      <Icon name="Play" size={14} style={{ color: "#fff", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.5))" } as React.CSSProperties} />
+                    </div>
+                  )}
+
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" style={{ backgroundColor: "rgba(92,74,50,0.45)" }}>
+                    <span className="flex items-center gap-1 text-white font-golos text-sm font-medium">
+                      <span className="text-base">{item.user_liked ? "♥" : "♡"}</span>
+                      {item.likes_count.toLocaleString()}
+                    </span>
+                    <span className="flex items-center gap-1 text-white font-golos text-sm font-medium">
+                      <span className="text-base">💬</span>
+                      {item.comments_count}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-function FeedCard({ item, user, onSubscribe, onClick, onLike, liking, navigate }: {
-  item: MediaItem;
-  user: User | null;
-  onSubscribe: () => void;
-  onClick: () => void;
-  onLike: () => void;
-  liking: boolean;
-  navigate: (path: string) => void;
-}) {
-  const isVideo = item.type === "video";
-  const preview = item.thumbnail_url || item.url;
-
-  return (
-    <div className="rounded-2xl overflow-hidden border shadow-sm" style={{ backgroundColor: "#fff8f0", borderColor: "#e8ddd0" }}>
-      <div
-        className={`relative w-full overflow-hidden ${!item.locked ? "cursor-pointer" : ""}`}
-        style={{ aspectRatio: "4/5" }}
-        onClick={!item.locked ? onClick : undefined}
-      >
-        {preview ? (
-          <img
-            src={preview}
-            alt={item.title || ""}
-            className={`w-full h-full object-cover transition-transform duration-500 ${!item.locked ? "hover:scale-105" : ""}`}
-            style={item.locked ? { filter: "blur(12px) brightness(0.65)", transform: "scale(1.1)" } : {}}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: "#e8ddd0" }}>
-            <Icon name={isVideo ? "Play" : "Image"} size={40} style={{ color: "#a0916e" } as React.CSSProperties} />
-          </div>
-        )}
-
-        {isVideo && !item.locked && (
-          <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-golos" style={{ backgroundColor: "rgba(0,0,0,0.6)", color: "#fff" }}>
-            <Icon name="Play" size={10} /> Video
-          </div>
-        )}
-
-        {item.locked && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(245,240,232,0.9)" }}>
-              <Icon name="Lock" size={20} style={{ color: "#8b7355" } as React.CSSProperties} />
-            </div>
-            <p className="font-golos text-xs uppercase tracking-widest text-white font-medium">
-              {item.tier === "vip" ? "VIP only" : "Subscribers only"}
-            </p>
-            <button
-              onClick={(e) => { e.stopPropagation(); onSubscribe(); }}
-              className="px-5 py-2 text-xs font-golos tracking-widest uppercase rounded-full"
-              style={{ backgroundColor: "#8b7355", color: "#fff" }}
-            >
-              {user ? "Subscribe" : "Sign in"}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Footer */}
-      <div className="px-4 py-3 flex items-center justify-between">
-        <div>
-          {item.title && (
-            <p className="font-cormorant text-base font-medium mb-0.5" style={{ color: "#5c4a32" }}>{item.title}</p>
-          )}
-          <p className="font-golos text-xs" style={{ color: "#b8a882" }}>
-            {new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {item.tier !== "free" && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] tracking-wider uppercase font-golos" style={{ backgroundColor: "#f0e8d8", color: "#8b7355" }}>
-              {item.tier}
-            </span>
-          )}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={(e) => { e.stopPropagation(); if (!item.locked) navigate(`/feed/${item.id}#comments`); }}
-              className="flex items-center gap-1.5 transition-all"
-              style={{ color: "#b8a882" }}
-            >
-              <span className="text-xl leading-none">💬</span>
-              <span className="font-golos text-sm tabular-nums">{item.comments_count}</span>
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); onLike(); }}
-              disabled={liking}
-              className="flex items-center gap-1.5 transition-all disabled:opacity-50 group"
-              style={{ color: item.user_liked ? "#e8a0b0" : "#b8a882" }}
-            >
-              <span className="text-xl leading-none transition-transform group-active:scale-125" style={{ display: "inline-block" }}>
-                {item.user_liked ? "♥" : "♡"}
-              </span>
-              <span className="font-golos text-sm font-medium tabular-nums">
-                {item.likes_count.toLocaleString()}
-              </span>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
