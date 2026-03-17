@@ -220,9 +220,9 @@ export default function Index() {
         <div className="absolute bottom-1/3 right-1/3 w-48 h-48 rounded-full bg-accent/5 blur-3xl animate-float delay-300" />
 
         {/* Фото — на мобильном сверху, на десктопе справа */}
-        <div className="relative z-10 w-full md:hidden h-[55vw] min-h-[260px] flex-shrink-0 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
+        <div className="relative z-10 w-full md:hidden h-[70vw] min-h-[320px] flex-shrink-0 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
           <img src={IMG_HERO} alt="Mia Rey" className="h-full w-full object-cover object-top" />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
         </div>
 
         {/* Текст */}
