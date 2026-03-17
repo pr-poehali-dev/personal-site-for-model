@@ -221,7 +221,7 @@ export default function Index() {
 
         {/* Фото — на мобильном сверху, на десктопе справа */}
         <div className="relative z-10 w-full md:hidden h-[70vw] min-h-[320px] flex-shrink-0 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
-          <img src={IMG_HERO} alt="Mia Rey" className="h-full w-full object-cover object-top" />
+          <img src={IMG_HERO} alt="Mia Rey" className="h-full w-full object-cover" style={{ objectPosition: "center 30%" }} />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
         </div>
 
