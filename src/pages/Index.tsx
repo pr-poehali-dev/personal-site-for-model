@@ -28,7 +28,6 @@ export default function Index() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [ringPos, setRingPos] = useState({ x: 0, y: 0 });
   const [likedPosts, setLikedPosts] = useState<number[]>([]);
-  const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" });
 
   const [user, setUser] = useState<User | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
@@ -505,67 +504,7 @@ export default function Index() {
         </div>
       </section>
 
-      {/* ── CONTACT ── */}
-      <section id="contact" className="py-24 px-6">
-        <div className="max-w-2xl mx-auto text-center scroll-reveal">
-          <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-3">Get in touch</p>
-          <h2 className="font-cormorant text-5xl md:text-6xl font-light text-gold-gradient mb-4">Contact</h2>
-          <div className="h-px w-16 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent mb-12" />
 
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-4 text-left">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-golos uppercase tracking-widest text-muted-foreground mb-2">Name</label>
-                <input
-                  type="text"
-                  value={contactForm.name}
-                  onChange={(e) => setContactForm((p) => ({ ...p, name: e.target.value }))}
-                  className="w-full bg-muted/50 border border-border rounded px-4 py-3 font-golos text-sm text-foreground placeholder-muted-foreground/50 focus:outline-none focus:border-primary transition-colors duration-200"
-                  placeholder="Your name"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-golos uppercase tracking-widest text-muted-foreground mb-2">Email</label>
-                <input
-                  type="email"
-                  value={contactForm.email}
-                  onChange={(e) => setContactForm((p) => ({ ...p, email: e.target.value }))}
-                  className="w-full bg-muted/50 border border-border rounded px-4 py-3 font-golos text-sm text-foreground placeholder-muted-foreground/50 focus:outline-none focus:border-primary transition-colors duration-200"
-                  placeholder="email@example.com"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-golos uppercase tracking-widest text-muted-foreground mb-2">Message</label>
-              <textarea
-                rows={5}
-                value={contactForm.message}
-                onChange={(e) => setContactForm((p) => ({ ...p, message: e.target.value }))}
-                className="w-full bg-muted/50 border border-border rounded px-4 py-3 font-golos text-sm text-foreground placeholder-muted-foreground/50 focus:outline-none focus:border-primary transition-colors duration-200 resize-none"
-                placeholder="Hey Mia..."
-              />
-            </div>
-            <div className="text-center pt-4">
-              <button type="submit" className="px-12 py-3 bg-primary text-primary-foreground text-sm tracking-widest uppercase font-golos hover:bg-primary/90 transition-all duration-300">
-                Send Message
-              </button>
-            </div>
-          </form>
-
-          <div className="flex justify-center gap-8 mt-16 pt-8 border-t border-border">
-            {[
-              { label: "Telegram", icon: "Send" },
-              { label: "Instagram", icon: "Camera" },
-              { label: "OnlyFans", icon: "Star" },
-            ].map((s) => (
-              <button key={s.label} className="flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors duration-200">
-                <Icon name={s.icon} fallback="Star" size={18} />
-                <span className="text-[10px] font-golos uppercase tracking-widest">{s.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── SEO TEXT SECTION ── */}
       <section className="py-24 px-6 bg-gradient-to-b from-background via-muted/5 to-background">
