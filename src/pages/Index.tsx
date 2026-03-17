@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import AuthModal from "@/components/AuthModal";
-import { getToken, getMe, clearToken, hasTier, User } from "@/lib/auth";
-import { createInvoice } from "@/lib/payment";
+import { getToken, getMe, clearToken, User } from "@/lib/auth";
 
 const IMG_HERO = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/bccf737b-8f5b-42a2-9a41-331473009369.jpg";
 const IMG_ABOUT = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/files/8c29e61e-79ab-4828-9cca-4d1338afb7a3.jpg";
@@ -21,41 +20,7 @@ const feedItems = [
   { id: 9, img: IMG_ABOUT, likes: 2870, locked: false, tag: "Art" },
 ];
 
-const tiers = [
-  {
-    name: "Photo Access",
-    price: "$9",
-    accent: "hsl(var(--muted-foreground))",
-    badge: null,
-    promo: null,
-    features: [
-      "Uncensored 18+ photo sets",
-      "Weekly exclusive photos",
-      "Access to all public content",
-      "Basic personal shots",
-    ],
-    featured: false,
-    cta: "Get Photos",
-  },
-  {
-    name: "Full Access",
-    price: "$22",
-    accent: "hsl(var(--primary))",
-    badge: "MOST POPULAR",
-    promo: "🔥 First month — $15",
-    features: [
-      "Everything in Photo Access",
-      "Full video content library",
-      "Daily photo + video updates",
-      "Priority DMs on Telegram & Instagram",
-      "Exclusive private videos & sets",
-      "Custom content on request",
-    ],
-    vipNote: "Want to connect personally? VIP members get priority replies on Telegram & Instagram — faster & closer 😈",
-    featured: true,
-    cta: "Get Full Access",
-  },
-];
+
 
 export default function Index() {
   const navigate = useNavigate();
@@ -69,8 +34,7 @@ export default function Index() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [payLoading, setPayLoading] = useState<string | null>(null);
-  const [payError, setPayError] = useState("");
+
   const [lightbox, setLightbox] = useState<{ imgs: string[]; idx: number } | null>(null);
   const ringPosRef = useRef({ x: 0, y: 0 });
 
@@ -133,24 +97,7 @@ export default function Index() {
     setUserMenuOpen(false);
   };
 
-  const handleSubscribe = async (tier: "photo" | "vip") => {
-    setPayError("");
-    if (!user) {
-      openAuth("register");
-      return;
-    }
-    const token = getToken();
-    if (!token) { openAuth("login"); return; }
-    setPayLoading(tier);
-    try {
-      const url = await createInvoice(tier, token);
-      window.open(url, "_blank");
-    } catch (e: unknown) {
-      setPayError(e instanceof Error ? e.message : "Payment error");
-    } finally {
-      setPayLoading(null);
-    }
-  };
+
 
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -443,99 +390,66 @@ export default function Index() {
         <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
 
         <div className="relative max-w-4xl mx-auto">
-          <div className="text-center mb-6 scroll-reveal">
+          <div className="text-center mb-10 scroll-reveal">
             <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-3">Content access</p>
             <h2 className="font-cormorant text-5xl md:text-6xl font-light text-gold-gradient">Subscribe</h2>
             <div className="h-px w-16 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent mt-4 mb-5" />
             <p className="font-golos text-sm text-foreground/70 max-w-lg mx-auto leading-relaxed">
-              Choose your level: photos for <span className="text-primary font-medium">$9</span> or full access with personal Telegram & Instagram DMs for <span className="text-primary font-medium">$22</span> 🔥
+              Exclusive 18+ content — photos, personal shots and more. From <span className="text-primary font-medium">$3.99/month</span>
             </p>
           </div>
 
-
-
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            {tiers.map((tier, i) => (
-              <div
-                key={tier.name}
-                className={`tier-card scroll-reveal rounded-xl p-8 border-gold-glow bg-card relative ${tier.featured ? "tier-featured border-primary/40 md:scale-105" : ""}`}
-                style={{ animationDelay: `${i * 0.15}s` }}
-              >
-                {/* Badge */}
-                {tier.badge && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="text-[10px] tracking-[0.25em] uppercase font-golos px-5 py-1.5 bg-primary text-primary-foreground rounded-full shadow-lg">
-                      {tier.badge}
-                    </span>
-                  </div>
-                )}
-
-                <h3 className="font-cormorant text-3xl font-light mb-1 mt-2" style={{ color: tier.accent }}>{tier.name}</h3>
-
-                {/* Price */}
-                <div className="flex items-baseline gap-1 mb-1">
-                  <span className="font-cormorant text-5xl text-foreground">{tier.price}</span>
-                  <span className="text-xs font-golos text-muted-foreground">/mo</span>
-                </div>
-
-                {/* Promo */}
-                {tier.promo ? (
-                  <p className="text-xs font-golos text-accent mb-4 tracking-wide">{tier.promo}</p>
-                ) : (
-                  <div className="mb-4" />
-                )}
-
-                <div className="h-px bg-border mb-6" />
-
-                <ul className="space-y-3 mb-6">
-                  {tier.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm font-golos text-foreground/70">
-                      <Icon name="Check" size={14} className="text-primary mt-0.5 shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-
-                {/* VIP note */}
-                {"vipNote" in tier && tier.vipNote && (
-                  <p className="text-xs font-golos text-muted-foreground/70 italic leading-relaxed mb-6 border-l-2 border-primary/30 pl-3">
-                    {tier.vipNote}
-                  </p>
-                )}
-
-                <button
-                  onClick={() => handleSubscribe(tier.featured ? "vip" : "photo")}
-                  disabled={payLoading !== null}
-                  className={`w-full py-3 text-sm tracking-widest uppercase font-golos transition-all duration-300 rounded disabled:opacity-60 disabled:cursor-not-allowed ${
-                    tier.featured
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90 animate-glow-pulse"
-                      : "border border-border text-foreground/60 hover:border-primary hover:text-primary"
-                  }`}
-                >
-                  {payLoading === (tier.featured ? "vip" : "photo") ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <Icon name="Loader" size={14} className="animate-spin" />
-                      Redirecting...
-                    </span>
-                  ) : hasTier(user, tier.featured ? "vip" : "photo") ? (
-                    <span className="flex items-center justify-center gap-1.5">
-                      <Icon name="Check" size={14} />
-                      Active
-                    </span>
-                  ) : (
-                    tier.cta
-                  )}
-                </button>
+          <div className="max-w-sm mx-auto scroll-reveal">
+            <div className="tier-card tier-featured rounded-xl p-8 border-gold-glow bg-card border-primary/40 relative text-center">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="text-[10px] tracking-[0.25em] uppercase font-golos px-5 py-1.5 bg-primary text-primary-foreground rounded-full shadow-lg">
+                  FULL ACCESS
+                </span>
               </div>
-            ))}
-          </div>
 
-          {payError && (
-            <div className="mt-6 flex items-center justify-center gap-2 text-xs font-golos text-destructive">
-              <Icon name="AlertCircle" size={14} />
-              {payError}
+              <div className="flex items-baseline gap-1 justify-center mb-2 mt-2">
+                <span className="font-cormorant text-6xl text-foreground">$3.99</span>
+                <span className="text-xs font-golos text-muted-foreground">/month</span>
+              </div>
+
+              <div className="h-px bg-border mb-6" />
+
+              <ul className="space-y-3 mb-8 text-left">
+                {[
+                  "Uncensored 18+ photo sets",
+                  "Weekly exclusive photos",
+                  "Personal & lifestyle shots",
+                  "Access to full content library",
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm font-golos text-foreground/70">
+                    <Icon name="Check" size={14} className="text-primary mt-0.5 shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="flex flex-col gap-3">
+                <a
+                  href="https://www.fanvue.com/miarey"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3 text-sm tracking-widest uppercase font-golos transition-all duration-300 rounded bg-primary text-primary-foreground hover:bg-primary/90 animate-glow-pulse flex items-center justify-center gap-2"
+                >
+                  <Icon name="ExternalLink" size={14} />
+                  Subscribe on Fanvue
+                </a>
+                <a
+                  href="https://boosty.to/miarey"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3 text-sm tracking-widest uppercase font-golos transition-all duration-300 rounded border border-border text-foreground/60 hover:border-primary hover:text-primary flex items-center justify-center gap-2"
+                >
+                  <Icon name="ExternalLink" size={14} />
+                  Subscribe on Boosty
+                </a>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </section>
 
