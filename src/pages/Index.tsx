@@ -79,11 +79,7 @@ export default function Index() {
     return () => obs.disconnect();
   }, []);
 
-  // Enable custom cursor only on this page
-  useEffect(() => {
-    document.body.classList.add("custom-cursor");
-    return () => document.body.classList.remove("custom-cursor");
-  }, []);
+
 
   // Load user from saved token on mount
   useEffect(() => {
@@ -124,10 +120,6 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      {/* Custom cursor */}
-      <div className="cursor-dot" style={{ left: mousePos.x, top: mousePos.y }} />
-      <div className="cursor-ring" style={{ left: ringPos.x, top: ringPos.y }} />
-
       {/* ── NAV ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between backdrop-blur-md bg-background/70 border-b border-border">
         <div className="flex items-center gap-1.5">
