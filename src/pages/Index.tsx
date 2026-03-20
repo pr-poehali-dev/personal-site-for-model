@@ -654,7 +654,27 @@ export default function Index() {
 
       {/* ── FOOTER ── */}
       <footer className="border-t border-border py-8 px-6 text-center">
-        <p className="font-cormorant text-2xl tracking-[0.4em] text-gold-gradient mb-2">Mia Rey</p>
+        <p className="font-cormorant text-2xl tracking-[0.4em] text-gold-gradient mb-4">Mia Rey</p>
+        <div className="flex items-center justify-center gap-4 mb-4">
+          {[
+            { label: "Instagram", icon: "📸", url: "https://www.instagram.com/miareymodel?igsh=MWttMHFmaDk5bng2Nw%3D%3D&utm_source=qr" },
+            { label: "Twitter / X", icon: "𝕏", url: "https://x.com/miareymodel?s=21" },
+            { label: "TikTok", icon: "🎵", url: "https://www.tiktok.com/@miareymodel?_r=1&_t=ZS-94qR22e8d65" },
+            { label: "Telegram", icon: "✈️", url: "https://t.me/+ciuG6DPS11M0OTQx" },
+          ].map((s) => (
+            <a
+              key={s.label}
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={s.label}
+              className="w-9 h-9 flex items-center justify-center rounded-full border border-border text-base transition-all hover:border-primary hover:scale-110"
+              style={{ color: "hsl(var(--muted-foreground))" }}
+            >
+              {s.icon}
+            </a>
+          ))}
+        </div>
         <p className="font-golos text-xs text-muted-foreground/40 tracking-wider">
           © 2026 · For adults 18+ only
         </p>
