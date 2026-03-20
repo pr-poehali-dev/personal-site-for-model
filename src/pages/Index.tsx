@@ -12,8 +12,7 @@ const feedItems = [
   { id: 1, img: "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/fba3975a-0b50-47b9-aeed-b567a3a98e37.jpg", likes: 1284, locked: false, tag: "Photo" },
   { id: 2, img: "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/46d4aeea-1502-4120-af3a-788a0da04b7a.jpg", likes: 2091, locked: false, tag: "Art" },
   { id: 3, img: "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/e4f006c3-4012-4fb3-be4d-8b7b8c5ea1b1.jpg", likes: 892, locked: false, tag: "Art" },
-  { id: 4, img: "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/4369be0c-03df-45e6-8b7c-1d0b6a552f3f.jpg", likes: 1750, locked: false, tag: "Latest" },
-  { id: 5, img: "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/fc1358bc-2790-49dc-8108-1dd3d7e49a39.jpg", likes: 4120, locked: false, tag: "Photo" },
+  { id: 4, img: "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/fc1358bc-2790-49dc-8108-1dd3d7e49a39.jpg", likes: 4120, locked: false, tag: "Photo" },
 ];
 
 
