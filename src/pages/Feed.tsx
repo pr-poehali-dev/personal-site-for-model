@@ -219,7 +219,7 @@ export default function Feed() {
             {[
               { label: "Instagram", icon: "📸", url: "https://www.instagram.com/miareymodel?igsh=MWttMHFmaDk5bng2Nw%3D%3D&utm_source=qr" },
               { label: "TikTok", icon: "🎵", url: "https://www.tiktok.com/@miareymodel?_r=1&_t=ZS-94qR22e8d65" },
-              { label: "Twitter", icon: "𝕏", url: "https://x.com/miareymodel?s=21" },
+              { label: "Twitter", icon: "🐦", url: "https://x.com/miareymodel?s=21" },
               { label: "Telegram", icon: "✈️", url: "https://t.me/+TvbSv9JOrm43NjZh" },
             ].map((s) => (
               <a
