@@ -214,6 +214,27 @@ export default function Feed() {
             Subscribe for full access 🔒
           </p>
 
+          {/* Social links */}
+          <div className="flex items-center justify-center gap-4 mb-4 pt-1">
+            {[
+              { label: "Instagram", icon: "📸", url: "https://www.instagram.com/miareymodel?igsh=MWttMHFmaDk5bng2Nw%3D%3D&utm_source=qr" },
+              { label: "TikTok", icon: "🎵", url: "https://www.tiktok.com/@miareymodel?_r=1&_t=ZS-94qR22e8d65" },
+              { label: "Twitter", icon: "𝕏", url: "https://x.com/miareymodel?s=21" },
+              { label: "Telegram", icon: "✈️", url: "https://t.me/+TvbSv9JOrm43NjZh" },
+            ].map((s) => (
+              <a
+                key={s.label}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-1 transition-opacity hover:opacity-70"
+              >
+                <span className="text-lg">{s.icon}</span>
+                <span className="font-golos text-[10px] uppercase tracking-widest" style={{ color: "#a0916e" }}>{s.label}</span>
+              </a>
+            ))}
+          </div>
+
           {/* Subscribe banners */}
           <div className="flex gap-2">
             <a
