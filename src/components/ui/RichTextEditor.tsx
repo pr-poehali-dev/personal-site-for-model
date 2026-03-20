@@ -2,10 +2,13 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
+import ImageExtension from "@tiptap/extension-image";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
+
+const AUTH_URL = "https://functions.poehali.dev/0f69b8f2-267a-4d9e-b597-2ba21b26ce35";
 
 interface Props {
   value: string;
@@ -41,13 +44,16 @@ function ToolbarButton({
 }
 
 export default function RichTextEditor({ value, onChange, placeholder }: Props) {
+  const imgInputRef = useRef<HTMLInputElement>(null);
+  const [imgUploading, setImgUploading] = [false, (_: boolean) => {}];
+  const uploadingRef = useRef(false);
+
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        heading: { levels: [1, 2, 3] },
-      }),
+      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Underline,
       Link.configure({ openOnClick: false }),
+      ImageExtension.configure({ inline: false, allowBase64: false }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder: placeholder || "Текст статьи..." }),
     ],
@@ -58,7 +64,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
     editorProps: {
       attributes: {
         class:
-          "min-h-[240px] max-h-[500px] overflow-y-auto px-3 py-2 text-sm text-foreground focus:outline-none prose prose-sm max-w-none",
+          "min-h-[240px] max-h-[500px] overflow-y-auto px-3 py-2 text-sm text-foreground focus:outline-none",
       },
     },
   });
@@ -77,6 +83,27 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
     if (url === null) return;
     if (url === "") { editor.chain().focus().unsetLink().run(); return; }
     editor.chain().focus().setLink({ href: url }).run();
+  };
+
+  const handleImageFile = async (file: File) => {
+    if (uploadingRef.current) return;
+    uploadingRef.current = true;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = (reader.result as string).split(",")[1];
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${AUTH_URL}?action=admin_blog_upload_img`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ file: base64, filename: file.name, content_type: file.type }),
+      });
+      const data = await res.json();
+      uploadingRef.current = false;
+      if (data.url) {
+        editor.chain().focus().setImage({ src: data.url, alt: file.name }).run();
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -136,6 +163,11 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
         <ToolbarButton title="Ссылка" active={editor.isActive("link")} onClick={setLink}>
           <Icon name="Link" size={14} />
         </ToolbarButton>
+
+        <ToolbarButton title="Вставить изображение" active={false} onClick={() => imgInputRef.current?.click()}>
+          <Icon name="Image" size={14} />
+        </ToolbarButton>
+
         <ToolbarButton title="Разделитель" active={false} onClick={() => editor.chain().focus().setHorizontalRule().run()}>
           <Icon name="Minus" size={14} />
         </ToolbarButton>
@@ -149,6 +181,14 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
           <Icon name="Redo2" size={14} />
         </ToolbarButton>
       </div>
+
+      <input
+        ref={imgInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageFile(f); e.target.value = ""; }}
+      />
 
       <EditorContent editor={editor} />
     </div>
