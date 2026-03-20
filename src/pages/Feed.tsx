@@ -293,8 +293,8 @@ export default function Feed() {
             ) : (
               <div className="grid grid-cols-3 gap-0.5">
                 {postItems.map((item) => {
-                  const preview = item.thumbnail_url || item.url;
                   const isVideo = item.type === "video";
+                  const preview = item.thumbnail_url || (!isVideo ? item.url : null);
                   return (
                     <div
                       key={item.id}
@@ -302,13 +302,15 @@ export default function Feed() {
                       style={{ aspectRatio: "1/1" }}
                       onClick={() => navigate(`/feed/${item.id}`)}
                     >
-                      {preview ? (
-                        <img
-                          src={preview}
-                          alt=""
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          style={item.locked ? { filter: "blur(8px) brightness(0.6)", transform: "scale(1.1)" } : {}}
-                        />
+                      {item.locked ? (
+                        <>
+                          {preview && <img src={preview} alt="" className="w-full h-full object-cover" style={{ filter: "blur(8px) brightness(0.6)", transform: "scale(1.1)" }} />}
+                          {!preview && isVideo && item.url && <video src={item.url} className="w-full h-full object-cover" style={{ filter: "blur(8px) brightness(0.6)", transform: "scale(1.1)" }} muted playsInline preload="metadata" />}
+                        </>
+                      ) : isVideo && item.url ? (
+                        <video src={item.url} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" muted playsInline preload="metadata" />
+                      ) : preview ? (
+                        <img src={preview} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: "#e8ddd0" }}>
                           <Icon name={isVideo ? "Play" : "Image"} size={24} style={{ color: "#a0916e" } as React.CSSProperties} />
@@ -353,7 +355,8 @@ export default function Feed() {
             ) : (
               <div className="grid grid-cols-2 gap-0.5">
                 {reelItems.map((item) => {
-                  const preview = item.thumbnail_url || item.url;
+                  const isVideoType = item.type === "video";
+                  const preview = item.thumbnail_url || (!isVideoType ? item.url : null);
                   return (
                     <div
                       key={item.id}
@@ -361,13 +364,21 @@ export default function Feed() {
                       style={{ aspectRatio: "9/16" }}
                       onClick={() => navigate(`/feed/${item.id}`)}
                     >
-                      {preview ? (
-                        <img
-                          src={preview}
-                          alt=""
+                      {item.locked ? (
+                        <>
+                          {preview && <img src={preview} alt="" className="w-full h-full object-cover" style={{ filter: "blur(8px) brightness(0.6)", transform: "scale(1.1)" }} />}
+                          {!preview && isVideoType && item.url && <video src={item.url} className="w-full h-full object-cover" style={{ filter: "blur(8px) brightness(0.6)", transform: "scale(1.1)" }} muted playsInline preload="metadata" />}
+                        </>
+                      ) : isVideoType && item.url ? (
+                        <video
+                          src={item.url}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          style={item.locked ? { filter: "blur(8px) brightness(0.6)", transform: "scale(1.1)" } : {}}
+                          muted
+                          playsInline
+                          preload="metadata"
                         />
+                      ) : preview ? (
+                        <img src={preview} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: "#e8ddd0" }}>
                           <Icon name="Play" size={32} style={{ color: "#a0916e" } as React.CSSProperties} />
