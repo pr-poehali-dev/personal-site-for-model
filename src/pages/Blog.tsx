@@ -33,6 +33,22 @@ export default function Blog() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    document.title = "Mia Rey Blog – Portrait Photography, Photoshoots & Exclusive Content";
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute("content", "Read the Mia Rey blog about portrait photography, aesthetic photoshoots, creative inspiration and exclusive content. Discover new ideas and visual stories.");
+    let metaKeys = document.querySelector('meta[name="keywords"]');
+    if (!metaKeys) { metaKeys = document.createElement("meta"); metaKeys.setAttribute("name", "keywords"); document.head.appendChild(metaKeys); }
+    metaKeys.setAttribute("content", "mia rey, blog, portrait photography, aesthetic photos");
+    return () => {
+      document.title = "Mia Rey – Exclusive Model Gallery & Premium Content";
+      const d = document.querySelector('meta[name="description"]');
+      if (d) d.setAttribute("content", "Discover the official Mia Rey website featuring exclusive model photos, artistic portrait photography, private galleries and premium content. Explore the gallery and subscribe for VIP access.");
+      const k = document.querySelector('meta[name="keywords"]');
+      if (k) k.setAttribute("content", "");
+    };
+  }, []);
+
   return (
     <div className="min-h-screen text-foreground overflow-x-hidden relative" style={{ backgroundColor: "#f5f0e8" }}>
 
@@ -56,12 +72,12 @@ export default function Blog() {
         <p className="font-golos text-xs tracking-[0.5em] uppercase text-muted-foreground mb-4">
           Journal & Stories
         </p>
-        <h1 className="font-cormorant text-6xl md:text-8xl font-light tracking-wide text-gold-gradient mb-4">
-          Blog
+        <h1 className="font-cormorant text-5xl md:text-7xl font-light tracking-wide text-gold-gradient mb-4">
+          Mia Rey Blog – Photography & Creative Inspiration
         </h1>
         <div className="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent" />
-        <p className="font-golos text-muted-foreground text-sm mt-6 max-w-md mx-auto leading-relaxed">
-          Behind the lens — thoughts on photography, aesthetics, and creative life.
+        <p className="font-golos text-muted-foreground text-sm mt-6 max-w-lg mx-auto leading-relaxed">
+          Welcome to the Mia Rey blog, where I share insights about portrait photography, aesthetic photoshoots and creative inspiration. Explore articles, ideas and exclusive content.
         </p>
       </div>
 
