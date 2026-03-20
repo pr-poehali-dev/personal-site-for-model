@@ -923,4 +923,28 @@ def handler(event: dict, context) -> dict:
 
         return err("Unknown blog action", 404)
 
+    # ── SITEMAP ──────────────────────────────────────────────────────────
+    if action == "sitemap":
+        base = "https://miarey.com"
+        static = [
+            {"loc": f"{base}/", "cf": "weekly", "pri": "1.0"},
+            {"loc": f"{base}/feed", "cf": "daily", "pri": "0.9"},
+            {"loc": f"{base}/blog", "cf": "weekly", "pri": "0.8"},
+        ]
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(f"SELECT slug, updated_at, created_at FROM {schema}.blog_posts WHERE is_published = true ORDER BY created_at DESC")
+        rows = cur.fetchall()
+        conn.close()
+        urls = []
+        for u in static:
+            urls.append(f"  <url>\n    <loc>{u['loc']}</loc>\n    <changefreq>{u['cf']}</changefreq>\n    <priority>{u['pri']}</priority>\n  </url>")
+        for row in rows:
+            slug, updated_at, created_at = row
+            lm = (updated_at or created_at)
+            lm_tag = f"\n    <lastmod>{lm.strftime('%Y-%m-%d')}</lastmod>" if lm else ""
+            urls.append(f"  <url>\n    <loc>{base}/blog/{slug}</loc>{lm_tag}\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>")
+        xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + "\n".join(urls) + "\n</urlset>"
+        return {"statusCode": 200, "headers": {"Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*"}, "body": xml}
+
     return err("Unknown action. Use ?action=register|login|me|google", 404)

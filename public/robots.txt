@@ -24,4 +24,4 @@ Allow: /
 Disallow: /admin
 Disallow: /admin/
 
-Sitemap: https://miarey.com/sitemap.xml
+Sitemap: https://functions.poehali.dev/0f69b8f2-267a-4d9e-b597-2ba21b26ce35/?action=sitemap
