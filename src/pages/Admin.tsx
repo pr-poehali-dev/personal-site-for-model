@@ -298,43 +298,54 @@ export default function Admin() {
     const isVideo = file.type.startsWith("video/");
 
     if (isVideo) {
-      // Для видео — presigned URL (прямая загрузка в S3, без лимитов)
+      // Для видео — загрузка чанками по 800КБ через бэкенд
       try {
         const token = localStorage.getItem("token");
-        const presignRes = await fetch(`${AUTH_URL}?action=admin_media_presign`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            filename: file.name,
-            content_type: file.type,
-            type: "video",
-            subtype: uploadSubtype,
-            tier: uploadTier,
-            title: uploadTitle || null,
-            description: uploadDescription || null,
-          }),
-        });
-        const presignData = await presignRes.json();
-        if (!presignData.presigned_url) {
-          setUploading(false);
-          toast.error(presignData.error || "Не удалось получить URL загрузки");
-          return;
+        const CHUNK = 800 * 1024;
+        const totalChunks = Math.ceil(file.size / CHUNK);
+        let uploadId = "";
+        let cdnUrl = "";
+
+        for (let i = 0; i < totalChunks; i++) {
+          const start = i * CHUNK;
+          const end = Math.min(start + CHUNK, file.size);
+          const blob = file.slice(start, end);
+          const base64 = await new Promise<string>((resolve) => {
+            const r = new FileReader();
+            r.onload = () => resolve((r.result as string).split(",")[1]);
+            r.readAsDataURL(blob);
+          });
+
+          const res = await fetch(`${AUTH_URL}?action=admin_media_chunk`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({
+              chunk: base64,
+              chunk_index: i,
+              total_chunks: totalChunks,
+              upload_id: uploadId,
+              filename: file.name,
+              content_type: file.type,
+              type: "video",
+              subtype: uploadSubtype,
+              tier: uploadTier,
+              title: uploadTitle || null,
+              description: uploadDescription || null,
+            }),
+          });
+          const data = await res.json();
+          if (data.error) { toast.error(data.error); setUploading(false); return; }
+          if (data.upload_id) uploadId = data.upload_id;
+          if (data.cdn_url) cdnUrl = data.cdn_url;
         }
-        // Загружаем файл напрямую в S3
-        const uploadRes = await fetch(presignData.presigned_url, {
-          method: "PUT",
-          headers: { "Content-Type": file.type },
-          body: file,
-        });
+
         setUploading(false);
-        if (uploadRes.ok || uploadRes.status === 200) {
+        if (cdnUrl) {
           toast.success("Видео загружено");
-          setUploadTitle("");
-          setUploadDescription("");
-          setUploadSubtype("post");
+          setUploadTitle(""); setUploadDescription(""); setUploadSubtype("post");
           loadMedia();
         } else {
-          toast.error(`Ошибка загрузки видео: ${uploadRes.status}`);
+          toast.error("Ошибка загрузки видео");
         }
       } catch (err) {
         setUploading(false);

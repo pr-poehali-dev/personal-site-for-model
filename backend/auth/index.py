@@ -349,6 +349,87 @@ def handler(event: dict, context) -> dict:
                 })
             return ok({"media": items, "total": len(items)})
 
+        # ── MEDIA CHUNK UPLOAD ─────────────────────────────────────────
+        if action == "admin_media_chunk" and method == "POST":
+            import boto3, os as _os, tempfile
+
+            chunk_data = body.get("chunk")
+            chunk_index = int(body.get("chunk_index", 0))
+            total_chunks = int(body.get("total_chunks", 1))
+            upload_id = body.get("upload_id", "")
+            filename = body.get("filename", "upload.mp4")
+            content_type = body.get("content_type", "video/mp4")
+            media_type = body.get("type", "video")
+            subtype = body.get("subtype", "reel")
+            tier = body.get("tier", "free")
+            title = body.get("title") or None
+            description = body.get("description") or None
+
+            if not chunk_data:
+                return err("No chunk data")
+
+            raw_chunk = base64.b64decode(chunk_data)
+
+            tmp_dir = "/tmp/uploads"
+            _os.makedirs(tmp_dir, exist_ok=True)
+
+            if not upload_id:
+                upload_id = f"{int(time.time())}_{hashlib.md5(filename.encode()).hexdigest()[:8]}"
+
+            chunk_path = f"{tmp_dir}/{upload_id}_{chunk_index:04d}"
+            with open(chunk_path, "wb") as f:
+                f.write(raw_chunk)
+
+            if chunk_index < total_chunks - 1:
+                return ok({"upload_id": upload_id, "chunk": chunk_index})
+
+            ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "mp4"
+            key = f"media/{upload_id}.{ext}"
+            combined_path = f"{tmp_dir}/{upload_id}_combined"
+            with open(combined_path, "wb") as out:
+                for i in range(total_chunks):
+                    p = f"{tmp_dir}/{upload_id}_{i:04d}"
+                    with open(p, "rb") as part:
+                        out.write(part.read())
+                    _os.remove(p)
+
+            s3 = boto3.client(
+                "s3",
+                endpoint_url="https://bucket.poehali.dev",
+                aws_access_key_id=_os.environ["AWS_ACCESS_KEY_ID"],
+                aws_secret_access_key=_os.environ["AWS_SECRET_ACCESS_KEY"],
+            )
+            with open(combined_path, "rb") as vf:
+                s3.put_object(Bucket="files", Key=key, Body=vf.read(), ContentType=content_type)
+            _os.remove(combined_path)
+
+            cdn_url = f"https://cdn.poehali.dev/projects/{_os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+            rand_likes = random.randint(100, 1000)
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(
+                f"INSERT INTO {schema}.media (title, description, type, subtype, url, tier, likes_count) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                (title, description, media_type, subtype, cdn_url, tier, rand_likes)
+            )
+            new_id = cur.fetchone()[0]
+            fake_comments = ["Absolutely stunning 😍","You look incredible! 🔥","Wow, just wow 😮","This is my favorite 💕","You're so beautiful ✨","Perfection 🙌","You're glowing! 🌟","This is everything 💖","Obsessed 😍","You never disappoint 💫","So gorgeous 😭💕","This made my day 🥰","Stunning as always 🌹","You look amazing 🔥","Literally perfect 💎"]
+            fake_users = ["emma_love","sophiaxo","lily.hearts","rose_vibes","nat_beauty","sky_dreamer","luna_style","aria_glam","mia_fan01","bella_charm","grace_wow","nova_xoxo","kira_magic","zoe_vibes","ruby_hearts"]
+            num = random.randint(5, 10)
+            sel_c = random.sample(fake_comments, min(num, len(fake_comments)))
+            sel_u = random.sample(fake_users, len(sel_c))
+            for i, ct in enumerate(sel_c):
+                fn = sel_u[i]
+                cur.execute(f"SELECT id FROM {schema}.users WHERE name = %s LIMIT 1", (fn,))
+                ur = cur.fetchone()
+                if ur: fuid = ur[0]
+                else:
+                    cur.execute(f"INSERT INTO {schema}.users (email, password_hash, name) VALUES (%s, %s, %s) RETURNING id", (f"{fn}@fake.local", "fake:000000", fn))
+                    fuid = cur.fetchone()[0]
+                cur.execute(f"INSERT INTO {schema}.media_comments (media_id, user_id, text, rand_likes) VALUES (%s, %s, %s, %s)", (new_id, fuid, ct, random.randint(1, 48)))
+            conn.commit()
+            conn.close()
+            return ok({"id": new_id, "cdn_url": cdn_url, "upload_id": upload_id}, 201)
+
         # ── MEDIA PRESIGN (для прямой загрузки видео в S3) ────────────
         if action == "admin_media_presign" and method == "POST":
             filename = body.get("filename", "upload.mp4")
