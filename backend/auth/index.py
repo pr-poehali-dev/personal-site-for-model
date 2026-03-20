@@ -385,6 +385,44 @@ def handler(event: dict, context) -> dict:
                 (title or None, description or None, media_type, subtype, cdn_url, tier, rand_likes)
             )
             new_id = cur.fetchone()[0]
+
+            fake_comments = [
+                "Absolutely stunning 😍", "You look incredible! 🔥", "Wow, just wow 😮",
+                "This is my favorite photo of you 💕", "You're so beautiful ✨",
+                "Perfection 🙌", "You're glowing! 🌟", "This photo is everything 💖",
+                "Obsessed with this look 😍", "You never disappoint 💫",
+                "So gorgeous omg 😭💕", "This made my day 🥰", "Stunning as always 🌹",
+                "You look amazing here 🔥", "I'm speechless 😤✨", "Literally perfect 💎",
+                "Queen behavior 👑", "This is art 🎨", "Can't stop looking 😍",
+                "You're unreal 🤩", "Absolutely fire 🔥🔥", "Love this so much 💗",
+                "My favorite ❤️", "Wow you are gorgeous 🌸", "Simply breathtaking 😮‍💨",
+            ]
+            num_comments = random.randint(5, 10)
+            selected = random.sample(fake_comments, num_comments)
+            fake_user_names = [
+                "emma_love", "sophiaxo", "lily.hearts", "rose_vibes", "nat_beauty",
+                "sky_dreamer", "luna_style", "aria_glam", "mia_fan01", "bella_charm",
+                "grace_wow", "nova_xoxo", "kira_magic", "zoe_vibes", "ruby_hearts",
+            ]
+            selected_users = random.sample(fake_user_names, num_comments)
+            for i, comment_text in enumerate(selected):
+                rand_comment_likes = random.randint(1, 48)
+                fake_name = selected_users[i]
+                cur.execute(f"SELECT id FROM {schema}.users WHERE name = %s LIMIT 1", (fake_name,))
+                user_row = cur.fetchone()
+                if user_row:
+                    fake_uid = user_row[0]
+                else:
+                    cur.execute(
+                        f"INSERT INTO {schema}.users (email, password_hash, name) VALUES (%s, %s, %s) RETURNING id",
+                        (f"{fake_name}@fake.local", "fake:000000", fake_name)
+                    )
+                    fake_uid = cur.fetchone()[0]
+                cur.execute(
+                    f"INSERT INTO {schema}.media_comments (media_id, user_id, text, rand_likes) VALUES (%s, %s, %s, %s)",
+                    (new_id, fake_uid, comment_text, rand_comment_likes)
+                )
+
             conn.commit()
             conn.close()
 
