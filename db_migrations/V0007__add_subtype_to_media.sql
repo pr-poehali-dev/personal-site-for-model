@@ -1,0 +1,1 @@
+ALTER TABLE t_p19413006_personal_site_for_mo.media ADD COLUMN subtype text NOT NULL DEFAULT 'post';

@@ -333,7 +333,7 @@ def handler(event: dict, context) -> dict:
             conn = get_db()
             cur = conn.cursor()
             cur.execute(f"""
-                SELECT id, title, description, type, url, thumbnail_url, tier, is_published, sort_order, created_at
+                SELECT id, title, description, type, url, thumbnail_url, tier, is_published, sort_order, created_at, subtype
                 FROM {schema}.media
                 ORDER BY sort_order ASC, created_at DESC
             """)
@@ -344,7 +344,8 @@ def handler(event: dict, context) -> dict:
                 items.append({
                     "id": r[0], "title": r[1], "description": r[2], "type": r[3],
                     "url": r[4], "thumbnail_url": r[5], "tier": r[6],
-                    "is_published": r[7], "sort_order": r[8], "created_at": str(r[9])
+                    "is_published": r[7], "sort_order": r[8], "created_at": str(r[9]),
+                    "subtype": r[10]
                 })
             return ok({"media": items, "total": len(items)})
 
@@ -357,6 +358,7 @@ def handler(event: dict, context) -> dict:
             description = body.get("description", "")
             media_type = body.get("type", "photo")
             tier = body.get("tier", "free")
+            subtype = body.get("subtype", "post")
 
             if not file_data:
                 return err("No file data provided")
@@ -379,8 +381,8 @@ def handler(event: dict, context) -> dict:
             conn = get_db()
             cur = conn.cursor()
             cur.execute(
-                f"INSERT INTO {schema}.media (title, description, type, url, tier, likes_count) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
-                (title or None, description or None, media_type, cdn_url, tier, rand_likes)
+                f"INSERT INTO {schema}.media (title, description, type, subtype, url, tier, likes_count) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                (title or None, description or None, media_type, subtype, cdn_url, tier, rand_likes)
             )
             new_id = cur.fetchone()[0]
             conn.commit()
@@ -463,7 +465,7 @@ def handler(event: dict, context) -> dict:
             return ok({"item": item})
 
         cur.execute(
-            f"SELECT id, title, description, type, url, thumbnail_url, tier, is_published, sort_order, created_at, likes_count "
+            f"SELECT id, title, description, type, url, thumbnail_url, tier, is_published, sort_order, created_at, likes_count, subtype "
             f"FROM {schema}.media WHERE is_published = true ORDER BY sort_order DESC, created_at DESC"
         )
         rows = cur.fetchall()
@@ -497,6 +499,7 @@ def handler(event: dict, context) -> dict:
                 "sort_order": row[8], "created_at": str(row[9]),
                 "likes_count": row[10], "user_liked": row[0] in liked_ids,
                 "comments_count": comments_count.get(row[0], 0),
+                "subtype": row[11],
             })
         return ok({"items": items, "total": len(items)})
 

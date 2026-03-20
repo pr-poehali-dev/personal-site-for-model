@@ -12,6 +12,7 @@ interface MediaItem {
   title: string | null;
   description: string | null;
   type: string;
+  subtype: string;
   url: string | null;
   thumbnail_url: string | null;
   tier: string;
@@ -69,6 +70,7 @@ export default function Feed() {
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [likingIds, setLikingIds] = useState<Set<number>>(new Set());
+  const [tab, setTab] = useState<"posts" | "reels">("posts");
 
   useEffect(() => {
     const token = getToken();
@@ -209,72 +211,144 @@ export default function Feed() {
           </div>
         </div>
 
-        {/* ── GRID ── */}
+        {/* ── TABS ── */}
+        <div className="flex border-t" style={{ borderColor: "#d4c9b0" }}>
+          <button
+            onClick={() => setTab("posts")}
+            className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-golos uppercase tracking-widest transition-colors"
+            style={{ color: tab === "posts" ? "#5c4a32" : "#a0916e", borderBottom: tab === "posts" ? "2px solid #8b7355" : "2px solid transparent" }}
+          >
+            <Icon name="Grid3x3" size={14} />
+            Posts
+          </button>
+          <button
+            onClick={() => setTab("reels")}
+            className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-golos uppercase tracking-widest transition-colors"
+            style={{ color: tab === "reels" ? "#5c4a32" : "#a0916e", borderBottom: tab === "reels" ? "2px solid #8b7355" : "2px solid transparent" }}
+          >
+            <Icon name="Film" size={14} />
+            Reels
+          </button>
+        </div>
+
+        {/* ── CONTENT ── */}
         {loading ? (
           <div className="flex justify-center py-20">
             <Icon name="Loader" size={24} className="animate-spin" style={{ color: "#a0916e" } as React.CSSProperties} />
           </div>
-        ) : items.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="font-golos text-sm" style={{ color: "#a0916e" }}>No content yet</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 gap-0.5">
-            {items.map((item) => {
-              const preview = item.thumbnail_url || item.url;
-              const isVideo = item.type === "video";
-              return (
-                <div
-                  key={item.id}
-                  className="relative group cursor-pointer overflow-hidden"
-                  style={{ aspectRatio: "1/1" }}
-                  onClick={() => navigate(`/feed/${item.id}`)}
-                >
-                  {/* Image / blur */}
-                  {preview ? (
-                    <img
-                      src={preview}
-                      alt=""
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      style={item.locked ? { filter: "blur(8px) brightness(0.6)", transform: "scale(1.1)" } : {}}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: "#e8ddd0" }}>
-                      <Icon name={isVideo ? "Play" : "Image"} size={24} style={{ color: "#a0916e" } as React.CSSProperties} />
-                    </div>
-                  )}
-
-                  {/* Lock badge */}
-                  {item.locked && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(245,240,232,0.85)" }}>
-                        <Icon name="Lock" size={14} style={{ color: "#8b7355" } as React.CSSProperties} />
+        ) : tab === "posts" ? (
+          (() => {
+            const postItems = items.filter((i) => i.subtype !== "reel");
+            return postItems.length === 0 ? (
+              <div className="text-center py-20">
+                <p className="font-golos text-sm" style={{ color: "#a0916e" }}>No posts yet</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-0.5">
+                {postItems.map((item) => {
+                  const preview = item.thumbnail_url || item.url;
+                  const isVideo = item.type === "video";
+                  return (
+                    <div
+                      key={item.id}
+                      className="relative group cursor-pointer overflow-hidden"
+                      style={{ aspectRatio: "1/1" }}
+                      onClick={() => navigate(`/feed/${item.id}`)}
+                    >
+                      {preview ? (
+                        <img
+                          src={preview}
+                          alt=""
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          style={item.locked ? { filter: "blur(8px) brightness(0.6)", transform: "scale(1.1)" } : {}}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: "#e8ddd0" }}>
+                          <Icon name={isVideo ? "Play" : "Image"} size={24} style={{ color: "#a0916e" } as React.CSSProperties} />
+                        </div>
+                      )}
+                      {item.locked && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(245,240,232,0.85)" }}>
+                            <Icon name="Lock" size={14} style={{ color: "#8b7355" } as React.CSSProperties} />
+                          </div>
+                        </div>
+                      )}
+                      {isVideo && !item.locked && (
+                        <div className="absolute top-1.5 right-1.5">
+                          <Icon name="Play" size={14} style={{ color: "#fff", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.5))" } as React.CSSProperties} />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" style={{ backgroundColor: "rgba(92,74,50,0.45)" }}>
+                        <span className="flex items-center gap-1 text-white font-golos text-sm font-medium">
+                          <span className="text-base">{item.user_liked ? "♥" : "♡"}</span>
+                          {item.likes_count.toLocaleString()}
+                        </span>
+                        <span className="flex items-center gap-1 text-white font-golos text-sm font-medium">
+                          <span className="text-base">💬</span>
+                          {item.comments_count}
+                        </span>
                       </div>
                     </div>
-                  )}
-
-                  {/* Video badge */}
-                  {isVideo && !item.locked && (
-                    <div className="absolute top-1.5 right-1.5">
-                      <Icon name="Play" size={14} style={{ color: "#fff", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.5))" } as React.CSSProperties} />
+                  );
+                })}
+              </div>
+            );
+          })()
+        ) : (
+          (() => {
+            const reelItems = items.filter((i) => i.subtype === "reel");
+            return reelItems.length === 0 ? (
+              <div className="text-center py-20">
+                <Icon name="Film" size={32} className="mx-auto mb-3" style={{ color: "#d4c9b0" } as React.CSSProperties} />
+                <p className="font-golos text-sm" style={{ color: "#a0916e" }}>No reels yet</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-0.5">
+                {reelItems.map((item) => {
+                  const preview = item.thumbnail_url || item.url;
+                  return (
+                    <div
+                      key={item.id}
+                      className="relative group cursor-pointer overflow-hidden"
+                      style={{ aspectRatio: "9/16" }}
+                      onClick={() => navigate(`/feed/${item.id}`)}
+                    >
+                      {preview ? (
+                        <img
+                          src={preview}
+                          alt=""
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          style={item.locked ? { filter: "blur(8px) brightness(0.6)", transform: "scale(1.1)" } : {}}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: "#e8ddd0" }}>
+                          <Icon name="Play" size={32} style={{ color: "#a0916e" } as React.CSSProperties} />
+                        </div>
+                      )}
+                      {item.locked && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(245,240,232,0.85)" }}>
+                            <Icon name="Lock" size={16} style={{ color: "#8b7355" } as React.CSSProperties} />
+                          </div>
+                        </div>
+                      )}
+                      {!item.locked && (
+                        <div className="absolute bottom-2 left-2 flex items-center gap-1">
+                          <Icon name="Play" size={12} style={{ color: "#fff", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))" } as React.CSSProperties} />
+                        </div>
+                      )}
+                      <div className="absolute bottom-2 right-2 flex items-center gap-1 text-white font-golos text-xs font-medium" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.6)" }}>
+                        <span>{item.user_liked ? "♥" : "♡"}</span>
+                        <span>{item.likes_count.toLocaleString()}</span>
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200" style={{ backgroundColor: "rgba(92,74,50,0.35)" }} />
                     </div>
-                  )}
-
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" style={{ backgroundColor: "rgba(92,74,50,0.45)" }}>
-                    <span className="flex items-center gap-1 text-white font-golos text-sm font-medium">
-                      <span className="text-base">{item.user_liked ? "♥" : "♡"}</span>
-                      {item.likes_count.toLocaleString()}
-                    </span>
-                    <span className="flex items-center gap-1 text-white font-golos text-sm font-medium">
-                      <span className="text-base">💬</span>
-                      {item.comments_count}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+            );
+          })()
         )}
       </div>
     </div>

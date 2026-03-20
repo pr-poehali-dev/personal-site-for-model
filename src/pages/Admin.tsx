@@ -135,6 +135,7 @@ export default function Admin() {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadTier, setUploadTier] = useState<"free" | "photo" | "vip">("free");
+  const [uploadSubtype, setUploadSubtype] = useState<"post" | "reel">("post");
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadDescription, setUploadDescription] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -192,6 +193,7 @@ export default function Admin() {
         filename: file.name,
         content_type: file.type,
         type: isVideo ? "video" : "photo",
+        subtype: uploadSubtype,
         tier: uploadTier,
         title: uploadTitle || null,
         description: uploadDescription || null,
@@ -201,6 +203,7 @@ export default function Admin() {
         toast.success("Файл загружен");
         setUploadTitle("");
         setUploadDescription("");
+        setUploadSubtype("post");
         loadMedia();
       } else {
         toast.error(res.error || "Ошибка загрузки");
@@ -423,6 +426,14 @@ export default function Admin() {
                     <option value="free">🌐 Бесплатно (всем)</option>
                     <option value="photo">🔒 Подписчики ($3.99)</option>
                     <option value="vip">⭐ VIP</option>
+                  </select>
+                  <select
+                    value={uploadSubtype}
+                    onChange={(e) => setUploadSubtype(e.target.value as "post" | "reel")}
+                    className="px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground focus:outline-none focus:border-primary"
+                  >
+                    <option value="post">🖼 Пост</option>
+                    <option value="reel">🎬 Рилс</option>
                   </select>
                 </div>
                 <textarea
