@@ -298,25 +298,42 @@ export default function Admin() {
     reader.onload = async () => {
       const base64 = (reader.result as string).split(",")[1];
       const isVideo = file.type.startsWith("video/");
-      const res = await apiCall("admin_media_upload", "POST", {
-        file: base64,
-        filename: file.name,
-        content_type: file.type,
-        type: isVideo ? "video" : "photo",
-        subtype: uploadSubtype,
-        tier: uploadTier,
-        title: uploadTitle || null,
-        description: uploadDescription || null,
-      });
-      setUploading(false);
-      if (res.id) {
-        toast.success("Файл загружен");
-        setUploadTitle("");
-        setUploadDescription("");
-        setUploadSubtype("post");
-        loadMedia();
-      } else {
-        toast.error(res.error || "Ошибка загрузки");
+      try {
+        const token = localStorage.getItem("token");
+        const body = JSON.stringify({
+          file: base64,
+          filename: file.name,
+          content_type: file.type,
+          type: isVideo ? "video" : "photo",
+          subtype: uploadSubtype,
+          tier: uploadTier,
+          title: uploadTitle || null,
+          description: uploadDescription || null,
+        });
+        const response = await fetch(`${AUTH_URL}?action=admin_media_upload`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body,
+        });
+        if (!response.ok) {
+          setUploading(false);
+          toast.error(`Ошибка сервера: ${response.status}`);
+          return;
+        }
+        const res = await response.json();
+        setUploading(false);
+        if (res.id) {
+          toast.success("Файл загружен");
+          setUploadTitle("");
+          setUploadDescription("");
+          setUploadSubtype("post");
+          loadMedia();
+        } else {
+          toast.error(res.error || "Ошибка загрузки");
+        }
+      } catch (err) {
+        setUploading(false);
+        toast.error(`Ошибка: ${err instanceof Error ? err.message : "неизвестная ошибка"}`);
       }
     };
     reader.readAsDataURL(file);
