@@ -8,22 +8,10 @@ export default function Blog() {
   const [hovered, setHovered] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen text-foreground overflow-x-hidden relative">
-      <div
-        className="fixed inset-0 z-0 pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ctext x='10' y='50' font-size='36' opacity='0.07'%3E🍓%3C/text%3E%3Ctext x='50' y='20' font-size='28' opacity='0.05'%3E🍓%3C/text%3E%3C/svg%3E")`,
-          backgroundSize: "120px 120px",
-          backgroundColor: "hsl(var(--background))",
-        }}
-      />
-      <div
-        className="fixed inset-0 z-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse at center, transparent 40%, hsl(350 40% 8% / 0.6) 100%)" }}
-      />
+    <div className="min-h-screen text-foreground overflow-x-hidden relative" style={{ backgroundColor: "#f5f0e8" }}>
 
       {/* Nav */}
-      <nav className="relative z-50 px-6 py-5 flex items-center justify-between backdrop-blur-md bg-background/70 border-b border-border sticky top-0">
+      <nav className="relative z-50 px-6 py-5 flex items-center justify-between backdrop-blur-sm border-b sticky top-0" style={{ backgroundColor: "rgba(245,240,232,0.9)", borderColor: "#d4c9b0" }}>
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
