@@ -42,7 +42,11 @@ export default function FeedPost() {
   const [submitting, setSubmitting] = useState(false);
   const [liking, setLiking] = useState(false);
   const [likedComments, setLikedComments] = useState<Set<number>>(new Set());
+  const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [submittingReply, setSubmittingReply] = useState(false);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
+  const replyInputRef = useRef<HTMLTextAreaElement>(null);
 
   const toggleCommentLike = (commentId: number) => {
     setLikedComments((prev) => {
@@ -56,6 +60,37 @@ export default function FeedPost() {
         ? { ...c, rand_likes: likedComments.has(commentId) ? c.rand_likes - 1 : c.rand_likes + 1 }
         : c
     ));
+  };
+
+  const openReply = (comment: Comment) => {
+    const token = getToken();
+    if (!token || !user) { setAuthMode("login"); setAuthOpen(true); return; }
+    setReplyingTo(comment);
+    setReplyText(`@${comment.author} `);
+    setTimeout(() => replyInputRef.current?.focus(), 50);
+  };
+
+  const submitReply = async () => {
+    const text = replyText.trim();
+    if (!text || !id || !replyingTo) return;
+    const token = getToken();
+    if (!token || !user) { setAuthMode("login"); setAuthOpen(true); return; }
+    setSubmittingReply(true);
+    try {
+      const res = await fetch(`${AUTH_URL}/?action=add_comment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ media_id: parseInt(id), text }),
+      });
+      const data = await res.json();
+      if (data.id) {
+        setComments((prev) => [data, ...prev]);
+        setReplyingTo(null);
+        setReplyText("");
+      }
+    } finally {
+      setSubmittingReply(false);
+    }
   };
 
   useEffect(() => {
@@ -288,14 +323,56 @@ export default function FeedPost() {
                             </span>
                           </div>
                           <p className="font-golos text-sm leading-relaxed" style={{ color: "#5c4a32" }}>{c.text}</p>
-                          <button
-                            onClick={() => toggleCommentLike(c.id)}
-                            className="flex items-center gap-1 mt-2 transition-all active:scale-125"
-                            style={{ color: likedComments.has(c.id) ? "#e8a0b0" : "#c4b89a" }}
-                          >
-                            <span className="text-sm leading-none">{likedComments.has(c.id) ? "♥" : "♡"}</span>
-                            <span className="font-golos text-xs">{likedComments.has(c.id) ? c.rand_likes + 1 : c.rand_likes}</span>
-                          </button>
+                          <div className="flex items-center gap-4 mt-2">
+                            <button
+                              onClick={() => toggleCommentLike(c.id)}
+                              className="flex items-center gap-1 transition-all active:scale-125"
+                              style={{ color: likedComments.has(c.id) ? "#e8a0b0" : "#c4b89a" }}
+                            >
+                              <span className="text-sm leading-none">{likedComments.has(c.id) ? "♥" : "♡"}</span>
+                              <span className="font-golos text-xs">{likedComments.has(c.id) ? c.rand_likes + 1 : c.rand_likes}</span>
+                            </button>
+                            <button
+                              onClick={() => openReply(c)}
+                              className="font-golos text-xs transition-colors hover:opacity-80"
+                              style={{ color: "#c4b89a" }}
+                            >
+                              Reply
+                            </button>
+                          </div>
+
+                          {/* Reply form */}
+                          {replyingTo?.id === c.id && (
+                            <div className="mt-3 pl-3 border-l-2" style={{ borderColor: "#e0d5c5" }}>
+                              <textarea
+                                ref={replyInputRef}
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submitReply(); } }}
+                                rows={2}
+                                className="w-full text-sm font-golos resize-none rounded-xl px-3 py-2 border focus:outline-none focus:border-primary/50 transition-colors"
+                                style={{ backgroundColor: "#f5f0e8", borderColor: "#e0d5c5", color: "#5c4a32" }}
+                                placeholder={`Reply to @${c.author}...`}
+                              />
+                              <div className="flex items-center gap-2 mt-1.5 justify-end">
+                                <button
+                                  onClick={() => { setReplyingTo(null); setReplyText(""); }}
+                                  className="font-golos text-xs"
+                                  style={{ color: "#c4b89a" }}
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={submitReply}
+                                  disabled={submittingReply || !replyText.trim()}
+                                  className="px-3 py-1 text-xs font-golos tracking-widest uppercase rounded-full transition-all disabled:opacity-40"
+                                  style={{ backgroundColor: "#8b7355", color: "#fff" }}
+                                >
+                                  {submittingReply ? "..." : "Reply"}
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
