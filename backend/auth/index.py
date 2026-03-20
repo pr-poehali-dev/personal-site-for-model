@@ -265,7 +265,7 @@ def handler(event: dict, context) -> dict:
     # ════════════════════════════════════════════════════════════════════
     # ADMIN ACTIONS — требуют role='admin'
     # ════════════════════════════════════════════════════════════════════
-    if action.startswith("admin_"):
+    if action.startswith("admin_") and not action.startswith("admin_blog"):
         payload = get_token_payload(event)
         if not payload:
             return err("Unauthorized", 401)
