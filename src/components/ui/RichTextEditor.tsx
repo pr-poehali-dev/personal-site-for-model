@@ -45,7 +45,6 @@ function ToolbarButton({
 
 export default function RichTextEditor({ value, onChange, placeholder }: Props) {
   const imgInputRef = useRef<HTMLInputElement>(null);
-  const [imgUploading, setImgUploading] = [false, (_: boolean) => {}];
   const uploadingRef = useRef(false);
 
   const editor = useEditor({
