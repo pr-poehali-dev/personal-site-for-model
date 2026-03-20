@@ -41,7 +41,22 @@ export default function FeedPost() {
   const [commentText, setCommentText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [liking, setLiking] = useState(false);
+  const [likedComments, setLikedComments] = useState<Set<number>>(new Set());
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
+
+  const toggleCommentLike = (commentId: number) => {
+    setLikedComments((prev) => {
+      const next = new Set(prev);
+      if (next.has(commentId)) next.delete(commentId);
+      else next.add(commentId);
+      return next;
+    });
+    setComments((prev) => prev.map((c) =>
+      c.id === commentId
+        ? { ...c, rand_likes: likedComments.has(commentId) ? c.rand_likes - 1 : c.rand_likes + 1 }
+        : c
+    ));
+  };
 
   useEffect(() => {
     const token = getToken();
@@ -273,10 +288,14 @@ export default function FeedPost() {
                             </span>
                           </div>
                           <p className="font-golos text-sm leading-relaxed" style={{ color: "#5c4a32" }}>{c.text}</p>
-                          <div className="flex items-center gap-1 mt-2" style={{ color: "#c4b89a" }}>
-                            <span className="text-sm">♡</span>
-                            <span className="font-golos text-xs">{c.rand_likes}</span>
-                          </div>
+                          <button
+                            onClick={() => toggleCommentLike(c.id)}
+                            className="flex items-center gap-1 mt-2 transition-all active:scale-125"
+                            style={{ color: likedComments.has(c.id) ? "#e8a0b0" : "#c4b89a" }}
+                          >
+                            <span className="text-sm leading-none">{likedComments.has(c.id) ? "♥" : "♡"}</span>
+                            <span className="font-golos text-xs">{likedComments.has(c.id) ? c.rand_likes + 1 : c.rand_likes}</span>
+                          </button>
                         </div>
                       </div>
                     </div>
