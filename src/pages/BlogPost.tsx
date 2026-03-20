@@ -166,11 +166,10 @@ export default function BlogPost() {
         {/* Content or excerpt */}
         {post.content ? (
           <div
-            className="font-golos leading-relaxed text-lg space-y-4 whitespace-pre-wrap"
+            className="font-golos leading-relaxed text-lg blog-content"
             style={{ color: "#3a2e1e" }}
-          >
-            {post.content}
-          </div>
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
         ) : (
           <p className="font-golos text-lg leading-relaxed" style={{ color: "rgba(58,46,30,0.7)" }}>{post.excerpt}</p>
         )}

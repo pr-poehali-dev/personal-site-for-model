@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { toast } from "sonner";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 
 const AUTH_URL = "https://functions.poehali.dev/0f69b8f2-267a-4d9e-b597-2ba21b26ce35";
 
@@ -776,12 +777,10 @@ export default function Admin() {
                   />
 
                   {/* Content */}
-                  <textarea
-                    placeholder="Текст статьи (поддерживается обычный текст с переносами строк)"
+                  <RichTextEditor
                     value={blogForm.content}
-                    onChange={(e) => setBlogForm((f) => ({ ...f, content: e.target.value }))}
-                    rows={10}
-                    className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary resize-y"
+                    onChange={(html) => setBlogForm((f) => ({ ...f, content: html }))}
+                    placeholder="Текст статьи..."
                   />
 
                   {/* Image upload */}
