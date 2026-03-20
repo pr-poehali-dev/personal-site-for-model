@@ -489,14 +489,20 @@ export default function Index() {
               <Icon name="Expand" size={14} className="text-foreground/60" />
             </div>
           </div>
-          <div className="col-span-8 relative group overflow-hidden rounded-lg card-lift flex items-center justify-center bg-card border border-border">
-            <div className="text-center p-8">
-              <p className="font-cormorant text-6xl text-gold-gradient mb-2">340+</p>
-              <p className="font-golos text-xs uppercase tracking-widest text-muted-foreground">photos in archive</p>
-              <div className="h-px w-12 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent my-4" />
-              <button onClick={() => scrollTo("subscribe")} className="text-xs font-golos tracking-wider text-primary hover:text-primary/80 transition-colors duration-200 nav-link pb-0.5">
-                Unlock access →
-              </button>
+          <div className="col-span-6 relative group overflow-hidden rounded-lg card-lift cursor-pointer" onClick={() => setLightbox({ imgs: ["https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/4c82b62f-d4f5-4fab-8e15-96ced5f94c98.jpg"], idx: 0 })}>
+            <img src="https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/4c82b62f-d4f5-4fab-8e15-96ced5f94c98.jpg" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" style={{ aspectRatio: "4/5" }} />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4">
+              <span className="font-cormorant italic text-sm text-foreground/90">Sauna Sessions</span>
+              <Icon name="Expand" size={14} className="text-foreground/60" />
+            </div>
+          </div>
+          <div className="col-span-6 relative group overflow-hidden rounded-lg card-lift">
+            <img src="https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/74114569-6e2b-4cf7-8a86-2ddd410d9a33.jpg" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" style={{ aspectRatio: "4/5", filter: "blur(10px) brightness(0.6)", transform: "scale(1.05)" }} />
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2" onClick={() => scrollTo("subscribe")} style={{ cursor: "pointer" }}>
+              <div className="w-10 h-10 rounded-full border border-primary/40 flex items-center justify-center bg-background/60">
+                <Icon name="Lock" size={16} className="text-primary" />
+              </div>
+              <span className="text-xs text-primary font-golos uppercase tracking-wider">Subscribe to unlock</span>
             </div>
           </div>
         </div>
