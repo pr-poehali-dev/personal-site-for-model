@@ -111,7 +111,7 @@ export default function Index() {
     { id: "about", label: "About" },
     { id: "subscribe", label: "Subscribe" },
     { id: "gallery", label: "Gallery" },
-    { id: "contact", label: "Contact" },
+
   ];
 
   const handleBlogClick = () => navigate("/blog");
