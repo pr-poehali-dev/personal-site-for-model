@@ -65,6 +65,22 @@ export default function Feed() {
   const navigate = useNavigate();
   const [items, setItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    document.title = "Mia Rey Feed – Latest Photos, Private Content & Exclusive Updates";
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute("content", "Explore the Mia Rey feed with latest photos, reels, exclusive updates and premium content. Discover new posts and private collections.");
+    let metaKeys = document.querySelector('meta[name="keywords"]');
+    if (!metaKeys) { metaKeys = document.createElement("meta"); metaKeys.setAttribute("name", "keywords"); document.head.appendChild(metaKeys); }
+    metaKeys.setAttribute("content", "mia rey, feed, exclusive photos, premium content, updates");
+    return () => {
+      document.title = "Mia Rey – Exclusive Model Gallery & Premium Content";
+      const d = document.querySelector('meta[name="description"]');
+      if (d) d.setAttribute("content", "Discover the official Mia Rey website featuring exclusive model photos, artistic portrait photography, private galleries and premium content. Explore the gallery and subscribe for VIP access.");
+      const k = document.querySelector('meta[name="keywords"]');
+      if (k) k.setAttribute("content", "");
+    };
+  }, []);
   const [user, setUser] = useState<User | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
