@@ -295,25 +295,72 @@ export default function Admin() {
     }
     setUploading(true);
     const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = (reader.result as string).split(",")[1];
-      const isVideo = file.type.startsWith("video/");
+    const isVideo = file.type.startsWith("video/");
+
+    if (isVideo) {
+      // Для видео — presigned URL (прямая загрузка в S3, без лимитов)
       try {
         const token = localStorage.getItem("token");
-        const body = JSON.stringify({
-          file: base64,
-          filename: file.name,
-          content_type: file.type,
-          type: isVideo ? "video" : "photo",
-          subtype: uploadSubtype,
-          tier: uploadTier,
-          title: uploadTitle || null,
-          description: uploadDescription || null,
+        const presignRes = await fetch(`${AUTH_URL}?action=admin_media_presign`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            filename: file.name,
+            content_type: file.type,
+            type: "video",
+            subtype: uploadSubtype,
+            tier: uploadTier,
+            title: uploadTitle || null,
+            description: uploadDescription || null,
+          }),
         });
+        const presignData = await presignRes.json();
+        if (!presignData.presigned_url) {
+          setUploading(false);
+          toast.error(presignData.error || "Не удалось получить URL загрузки");
+          return;
+        }
+        // Загружаем файл напрямую в S3
+        const uploadRes = await fetch(presignData.presigned_url, {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+        setUploading(false);
+        if (uploadRes.ok || uploadRes.status === 200) {
+          toast.success("Видео загружено");
+          setUploadTitle("");
+          setUploadDescription("");
+          setUploadSubtype("post");
+          loadMedia();
+        } else {
+          toast.error(`Ошибка загрузки видео: ${uploadRes.status}`);
+        }
+      } catch (err) {
+        setUploading(false);
+        toast.error(`Ошибка: ${err instanceof Error ? err.message : "неизвестная ошибка"}`);
+      }
+      return;
+    }
+
+    // Для фото — base64 через бэкенд
+    reader.onload = async () => {
+      const base64 = (reader.result as string).split(",")[1];
+      try {
+        const token = localStorage.getItem("token");
         const response = await fetch(`${AUTH_URL}?action=admin_media_upload`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body,
+          body: JSON.stringify({
+            file: base64,
+            filename: file.name,
+            content_type: file.type,
+            type: "photo",
+            subtype: uploadSubtype,
+            tier: uploadTier,
+            title: uploadTitle || null,
+            description: uploadDescription || null,
+          }),
         });
         if (!response.ok) {
           setUploading(false);

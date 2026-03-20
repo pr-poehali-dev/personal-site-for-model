@@ -349,6 +349,69 @@ def handler(event: dict, context) -> dict:
                 })
             return ok({"media": items, "total": len(items)})
 
+        # ── MEDIA PRESIGN (для прямой загрузки видео в S3) ────────────
+        if action == "admin_media_presign" and method == "POST":
+            filename = body.get("filename", "upload.mp4")
+            content_type = body.get("content_type", "video/mp4")
+            media_type = body.get("type", "video")
+            subtype = body.get("subtype", "reel")
+            tier = body.get("tier", "free")
+            title = body.get("title") or None
+            description = body.get("description") or None
+
+            ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "mp4"
+            key = f"media/{int(time.time())}_{hashlib.md5(filename.encode()).hexdigest()[:8]}.{ext}"
+
+            import boto3
+            s3 = boto3.client(
+                "s3",
+                endpoint_url="https://bucket.poehali.dev",
+                aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+                aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+            )
+            presigned_url = s3.generate_presigned_url(
+                "put_object",
+                Params={"Bucket": "files", "Key": key, "ContentType": content_type},
+                ExpiresIn=600,
+            )
+            cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+
+            rand_likes = random.randint(100, 1000)
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(
+                f"INSERT INTO {schema}.media (title, description, type, subtype, url, tier, likes_count) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                (title, description, media_type, subtype, cdn_url, tier, rand_likes)
+            )
+            new_id = cur.fetchone()[0]
+
+            fake_comments = [
+                "Absolutely stunning 😍", "You look incredible! 🔥", "Wow, just wow 😮",
+                "This is my favorite photo of you 💕", "You're so beautiful ✨",
+                "Perfection 🙌", "You're glowing! 🌟", "This photo is everything 💖",
+                "Obsessed with this look 😍", "You never disappoint 💫",
+                "So gorgeous omg 😭💕", "This made my day 🥰", "Stunning as always 🌹",
+                "You look amazing here 🔥", "Literally perfect 💎",
+            ]
+            fake_user_names = ["emma_love","sophiaxo","lily.hearts","rose_vibes","nat_beauty","sky_dreamer","luna_style","aria_glam","mia_fan01","bella_charm","grace_wow","nova_xoxo","kira_magic","zoe_vibes","ruby_hearts"]
+            num_comments = random.randint(5, 10)
+            selected = random.sample(fake_comments, min(num_comments, len(fake_comments)))
+            selected_users = random.sample(fake_user_names, len(selected))
+            for i, comment_text in enumerate(selected):
+                fake_name = selected_users[i]
+                cur.execute(f"SELECT id FROM {schema}.users WHERE name = %s LIMIT 1", (fake_name,))
+                user_row = cur.fetchone()
+                if user_row:
+                    fake_uid = user_row[0]
+                else:
+                    cur.execute(f"INSERT INTO {schema}.users (email, password_hash, name) VALUES (%s, %s, %s) RETURNING id", (f"{fake_name}@fake.local", "fake:000000", fake_name))
+                    fake_uid = cur.fetchone()[0]
+                cur.execute(f"INSERT INTO {schema}.media_comments (media_id, user_id, text, rand_likes) VALUES (%s, %s, %s, %s)", (new_id, fake_uid, comment_text, random.randint(1, 48)))
+
+            conn.commit()
+            conn.close()
+            return ok({"id": new_id, "presigned_url": presigned_url, "cdn_url": cdn_url}, 201)
+
         # ── MEDIA UPLOAD ──────────────────────────────────────────────
         if action == "admin_media_upload" and method == "POST":
             file_data = body.get("file")
