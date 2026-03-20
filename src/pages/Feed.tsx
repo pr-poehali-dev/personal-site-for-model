@@ -167,6 +167,16 @@ export default function Feed() {
         </div>
       </nav>
 
+      {/* ── SEO BLOCK ── */}
+      <div className="max-w-lg mx-auto px-4 pt-5 pb-1 relative z-10">
+        <h1 className="font-cormorant text-2xl font-light mb-1" style={{ color: "#5c4a32" }}>
+          Mia Rey Feed – Latest Photos & Updates
+        </h1>
+        <p className="font-golos text-xs leading-relaxed" style={{ color: "#a0916e" }}>
+          Explore the Mia Rey feed with latest photos, exclusive content and new updates. Discover recent posts, reels and premium content.
+        </p>
+      </div>
+
       <div className="max-w-lg mx-auto px-0 pb-8 relative z-10">
 
         {/* ── PROFILE HEADER ── */}
