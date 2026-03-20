@@ -39,6 +39,7 @@ interface MediaItem {
   title: string | null;
   description: string | null;
   type: string;
+  subtype: string;
   url: string;
   thumbnail_url: string | null;
   tier: string;
@@ -286,6 +287,12 @@ export default function Admin() {
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error("Файл слишком большой. Максимум 50 МБ для видео.");
+      e.target.value = "";
+      return;
+    }
     setUploading(true);
     const reader = new FileReader();
     reader.onload = async () => {
@@ -574,8 +581,11 @@ export default function Admin() {
                   {media.map((item) => (
                     <div key={item.id} className="group relative bg-card border border-border rounded-xl overflow-hidden">
                       {item.type === "video" ? (
-                        <div className="aspect-square bg-muted flex items-center justify-center">
-                          <Icon name="Play" size={32} className="text-muted-foreground" />
+                        <div className="aspect-square bg-muted flex items-center justify-center relative">
+                          <video src={item.url} className="w-full h-full object-cover" muted playsInline />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                            <Icon name="Play" size={28} className="text-white" />
+                          </div>
                         </div>
                       ) : (
                         <img src={item.url} alt={item.title || ""} className="aspect-square object-cover w-full" />
@@ -590,8 +600,8 @@ export default function Admin() {
                           }`}>
                             {item.tier === "free" ? "Бесплатно" : item.tier === "vip" ? "VIP" : "Платно"}
                           </span>
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${item.type === "video" ? "bg-purple-500/20 text-purple-400" : "bg-blue-500/20 text-blue-400"}`}>
-                            {item.type === "video" ? "видео" : "фото"}
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${item.subtype === "reel" ? "bg-pink-500/20 text-pink-400" : item.type === "video" ? "bg-purple-500/20 text-purple-400" : "bg-blue-500/20 text-blue-400"}`}>
+                            {item.subtype === "reel" ? "🎬 рилс" : item.type === "video" ? "видео" : "фото"}
                           </span>
                         </div>
                       </div>
