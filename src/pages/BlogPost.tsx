@@ -1,35 +1,85 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import { posts } from "@/lib/posts";
+
+const AUTH_URL = "https://functions.poehali.dev/0f69b8f2-267a-4d9e-b597-2ba21b26ce35";
+
+interface BlogPostData {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  content: string | null;
+  img_url: string | null;
+  tag: string;
+  seo_title: string | null;
+  seo_description: string | null;
+  keywords: string | null;
+  created_at: string;
+}
+
+interface BlogPostItem {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  img_url: string | null;
+  tag: string;
+  created_at: string;
+}
+
+function formatDate(s: string) {
+  return new Date(s).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+}
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const post = posts.find((p) => p.slug === slug);
+  const [post, setPost] = useState<BlogPostData | null>(null);
+  const [others, setOthers] = useState<BlogPostItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!slug) return;
+    Promise.all([
+      fetch(`${AUTH_URL}/?action=get_blog_posts&slug=${slug}`).then((r) => r.json()),
+      fetch(`${AUTH_URL}/?action=get_blog_posts`).then((r) => r.json()),
+    ]).then(([postData, listData]) => {
+      if (postData.error || !postData.post) {
+        setNotFound(true);
+      } else {
+        setPost(postData.post);
+        const all: BlogPostItem[] = listData.posts || [];
+        setOthers(all.filter((p) => p.slug !== slug).slice(0, 3));
+      }
+    }).finally(() => setLoading(false));
+  }, [slug]);
 
   useEffect(() => {
     if (!post) return;
-    if (post.seoTitle) document.title = post.seoTitle;
+    if (post.seo_title) document.title = post.seo_title;
     const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc && post.seoDescription) metaDesc.setAttribute("content", post.seoDescription);
+    if (metaDesc && post.seo_description) metaDesc.setAttribute("content", post.seo_description);
     return () => {
       document.title = "Mia Rey – Exclusive Model Gallery & Premium Content";
     };
   }, [post]);
 
-  if (!post) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <p className="font-cormorant text-3xl text-foreground">Post not found</p>
-        <button onClick={() => navigate("/blog")} className="text-primary text-sm font-golos hover:underline">
-          ← Back to Blog
-        </button>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#f5f0e8" }}>
+      <Icon name="Loader" size={28} className="animate-spin text-muted-foreground" />
+    </div>
+  );
 
-  const otherPosts = posts.filter((p) => p.id !== post.id).slice(0, 3);
+  if (notFound || !post) return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ backgroundColor: "#f5f0e8" }}>
+      <p className="font-cormorant text-3xl" style={{ color: "#2a1f0e" }}>Post not found</p>
+      <button onClick={() => navigate("/blog")} className="text-sm font-golos hover:underline" style={{ color: "#8b7355" }}>
+        ← Back to Blog
+      </button>
+    </div>
+  );
 
   return (
     <div className="min-h-screen relative" style={{ backgroundColor: "#f5f0e8" }}>
@@ -64,13 +114,10 @@ export default function BlogPost() {
         <span className="absolute text-4xl" style={{ top: "84%", right: "6px", color: "#e8a0b0", opacity: 0.3, transform: "rotate(-18deg)" }}>♥</span>
         <span className="absolute text-sm" style={{ top: "91%", right: "15px", color: "#8b7355", opacity: 0.4, transform: "rotate(10deg)" }}>forever</span>
       </div>
+
       {/* Nav */}
       <nav className="sticky top-0 z-50 px-6 py-5 flex items-center justify-between backdrop-blur-sm border-b" style={{ backgroundColor: "rgba(245,240,232,0.9)", borderColor: "#d4c9b0" }}>
-        <Link
-          to="/blog"
-          className="flex items-center gap-2 transition-colors"
-          style={{ color: "#8b7355" }}
-        >
+        <Link to="/blog" className="flex items-center gap-2 transition-colors" style={{ color: "#8b7355" }}>
           <Icon name="ArrowLeft" size={16} />
           <span className="font-golos text-xs tracking-widest uppercase">Back to Blog</span>
         </Link>
@@ -87,7 +134,7 @@ export default function BlogPost() {
           <span className="text-xs tracking-[0.2em] uppercase px-3 py-1 rounded-full font-golos" style={{ backgroundColor: "#e8dcc8", color: "#8b6914" }}>
             {post.tag}
           </span>
-          <span className="text-xs font-golos" style={{ color: "#9c8b6e" }}>{post.date}</span>
+          <span className="text-xs font-golos" style={{ color: "#9c8b6e" }}>{formatDate(post.created_at)}</span>
         </div>
 
         {/* Title */}
@@ -97,26 +144,35 @@ export default function BlogPost() {
         <div className="h-px w-16 mb-10" style={{ background: "linear-gradient(to right, #c4a35a, transparent)" }} />
 
         {/* Hero image — Polaroid style */}
-        <div className="mb-14 flex justify-center">
-          <div
-            className="relative bg-white shadow-2xl"
-            style={{ padding: "14px 14px 56px 14px", maxWidth: "480px", width: "100%", transform: "rotate(-1.5deg)" }}
-          >
-            <div className="overflow-hidden" style={{ aspectRatio: "4/5" }}>
-              <img src={post.img} alt={post.title} className="w-full h-full object-cover object-top" />
-            </div>
-            <p
-              className="text-center mt-3 text-base"
-              style={{ fontFamily: "'Dancing Script', cursive", color: "#555", letterSpacing: "0.02em" }}
+        {post.img_url && (
+          <div className="mb-14 flex justify-center">
+            <div
+              className="relative bg-white shadow-2xl"
+              style={{ padding: "14px 14px 56px 14px", maxWidth: "480px", width: "100%", transform: "rotate(-1.5deg)" }}
             >
-              {post.title}
-            </p>
+              <div className="overflow-hidden" style={{ aspectRatio: "4/5" }}>
+                <img src={post.img_url} alt={post.title} className="w-full h-full object-cover object-top" />
+              </div>
+              <p
+                className="text-center mt-3 text-base"
+                style={{ fontFamily: "'Dancing Script', cursive", color: "#555", letterSpacing: "0.02em" }}
+              >
+                {post.title}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Content or excerpt */}
-        {post.content ? post.content : (
-          <p className="font-golos text-foreground/70 text-lg leading-relaxed">{post.excerpt}</p>
+        {post.content ? (
+          <div
+            className="font-golos leading-relaxed text-lg space-y-4 whitespace-pre-wrap"
+            style={{ color: "#3a2e1e" }}
+          >
+            {post.content}
+          </div>
+        ) : (
+          <p className="font-golos text-lg leading-relaxed" style={{ color: "rgba(58,46,30,0.7)" }}>{post.excerpt}</p>
         )}
 
         {/* Keywords */}
@@ -137,10 +193,10 @@ export default function BlogPost() {
           <p className="font-golos text-xs tracking-[0.3em] uppercase mb-4" style={{ color: "#9c8b6e" }}>Share this post</p>
           <div className="flex gap-3 flex-wrap">
             {[
-              { label: "Instagram", icon: "📸", url: `https://www.instagram.com/` },
+              { label: "Instagram", icon: "📸", url: "https://www.instagram.com/" },
               { label: "Twitter / X", icon: "𝕏", url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(window.location.href)}` },
               { label: "Telegram", icon: "✈️", url: `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(post.title)}` },
-              { label: "TikTok", icon: "🎵", url: `https://www.tiktok.com/` },
+              { label: "TikTok", icon: "🎵", url: "https://www.tiktok.com/" },
             ].map((s) => (
               <a
                 key={s.label}
@@ -180,44 +236,35 @@ export default function BlogPost() {
                 Subscribe Now
               </a>
               <span className="font-golos text-xs" style={{ color: "rgba(245,240,232,0.4)" }}>
-                From $9.99 / month
+                From $3.99 / month
               </span>
-            </div>
-            <div className="flex justify-center gap-6 mt-6">
-              {[
-                { icon: "📸", label: "Instagram", href: "https://www.instagram.com/" },
-                { icon: "𝕏", label: "Twitter", href: "https://twitter.com/" },
-                { icon: "✈️", label: "Telegram", href: "https://t.me/" },
-                { icon: "🎵", label: "TikTok", href: "https://www.tiktok.com/" },
-              ].map((s) => (
-                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
-                  className="font-golos text-xs transition-colors hover:opacity-80"
-                  style={{ color: "rgba(245,240,232,0.5)" }}
-                >
-                  {s.icon} {s.label}
-                </a>
-              ))}
             </div>
           </div>
         </div>
       </article>
 
       {/* More posts */}
-      {otherPosts.length > 0 && (
+      {others.length > 0 && (
         <section className="max-w-3xl mx-auto px-6 pb-24">
           <div className="h-px w-full mb-12" style={{ backgroundColor: "#d4c9b0" }} />
           <p className="font-golos text-xs tracking-[0.4em] uppercase mb-8" style={{ color: "#9c8b6e" }}>More stories</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {otherPosts.map((p) => (
+            {others.map((p) => (
               <Link key={p.id} to={`/blog/${p.slug}`} className="group block">
-                <div className="aspect-[4/3] rounded-xl overflow-hidden mb-3">
-                  <img src={p.img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="aspect-[4/3] rounded-xl overflow-hidden mb-3 bg-muted">
+                  {p.img_url ? (
+                    <img src={p.img_url} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: "#e8ddd0" }}>
+                      <Icon name="Image" size={24} className="text-muted-foreground" />
+                    </div>
+                  )}
                 </div>
                 <span className="text-[10px] tracking-widest uppercase font-golos" style={{ color: "#c4a35a" }}>{p.tag}</span>
                 <p className="font-cormorant text-lg leading-snug mt-1 transition-colors" style={{ color: "#2a1f0e" }}>
                   {p.title}
                 </p>
-                <p className="text-xs font-golos mt-1" style={{ color: "#9c8b6e" }}>{p.date}</p>
+                <p className="text-xs font-golos mt-1" style={{ color: "#9c8b6e" }}>{formatDate(p.created_at)}</p>
               </Link>
             ))}
           </div>

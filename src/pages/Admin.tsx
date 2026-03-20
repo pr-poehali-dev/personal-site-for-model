@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 const AUTH_URL = "https://functions.poehali.dev/0f69b8f2-267a-4d9e-b597-2ba21b26ce35";
 
-type Tab = "stats" | "users" | "subscriptions" | "media";
+type Tab = "stats" | "users" | "subscriptions" | "media" | "blog";
 
 interface Stats {
   total_users: number;
@@ -42,6 +42,22 @@ interface MediaItem {
   url: string;
   thumbnail_url: string | null;
   tier: string;
+  is_published: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
+interface BlogPost {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  content: string | null;
+  img_url: string | null;
+  tag: string;
+  seo_title: string | null;
+  seo_description: string | null;
+  keywords: string | null;
   is_published: boolean;
   sort_order: number;
   created_at: string;
@@ -134,6 +150,13 @@ export default function Admin() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [blogEditing, setBlogEditing] = useState<BlogPost | null>(null);
+  const [blogEditorOpen, setBlogEditorOpen] = useState(false);
+  const [blogForm, setBlogForm] = useState({ title: "", excerpt: "", content: "", tag: "General", seo_title: "", seo_description: "", keywords: "", is_published: true, sort_order: 0, img_url: "" });
+  const [blogUploading, setBlogUploading] = useState(false);
+  const [blogSaving, setBlogSaving] = useState(false);
+  const blogImgRef = useRef<HTMLInputElement>(null);
   const [uploadTier, setUploadTier] = useState<"free" | "photo" | "vip">("free");
   const [uploadSubtype, setUploadSubtype] = useState<"post" | "reel">("post");
   const [uploadTitle, setUploadTitle] = useState("");
@@ -161,6 +184,7 @@ export default function Admin() {
     if (tab === "users") loadUsers();
     if (tab === "subscriptions") loadSubscriptions();
     if (tab === "media") loadMedia();
+    if (tab === "blog") loadBlogPosts();
   }, [authed, tab]);
 
   async function loadStats() {
@@ -178,6 +202,85 @@ export default function Admin() {
   async function loadMedia() {
     const d = await apiCall("admin_media");
     if (d.media) setMedia(d.media);
+  }
+
+  async function loadBlogPosts() {
+    const d = await apiCall("admin_blog_list");
+    if (d.posts) setBlogPosts(d.posts);
+  }
+
+  function openBlogNew() {
+    setBlogEditing(null);
+    setBlogEditorOpen(true);
+    setBlogForm({ title: "", excerpt: "", content: "", tag: "General", seo_title: "", seo_description: "", keywords: "", is_published: true, sort_order: 0, img_url: "" });
+  }
+
+  function openBlogEdit(post: BlogPost) {
+    setBlogEditing(post);
+    setBlogEditorOpen(true);
+    setBlogForm({
+      title: post.title,
+      excerpt: post.excerpt || "",
+      content: post.content || "",
+      tag: post.tag,
+      seo_title: post.seo_title || "",
+      seo_description: post.seo_description || "",
+      keywords: post.keywords || "",
+      is_published: post.is_published,
+      sort_order: post.sort_order,
+      img_url: post.img_url || "",
+    });
+  }
+
+  async function saveBlogPost() {
+    if (!blogForm.title.trim()) { toast.error("Укажи заголовок"); return; }
+    setBlogSaving(true);
+    try {
+      if (blogEditing) {
+        await apiCall("admin_blog_update", "PUT", { id: blogEditing.id, ...blogForm });
+        toast.success("Статья обновлена");
+      } else {
+        const res = await apiCall("admin_blog_create", "POST", blogForm);
+        if (res.error) { toast.error(res.error); return; }
+        toast.success("Статья создана");
+      }
+      setBlogEditorOpen(false);
+      setBlogEditing(null);
+      loadBlogPosts();
+    } finally {
+      setBlogSaving(false);
+    }
+  }
+
+  async function deleteBlogPost(id: number) {
+    if (!confirm("Удалить статью?")) return;
+    await apiCall("admin_blog_delete", "DELETE", undefined, `&id=${id}`);
+    setBlogPosts((prev) => prev.filter((p) => p.id !== id));
+    toast.success("Удалено");
+  }
+
+  async function handleBlogImgUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBlogUploading(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = (reader.result as string).split(",")[1];
+      const res = await apiCall("admin_blog_upload_img", "POST", {
+        file: base64,
+        filename: file.name,
+        content_type: file.type,
+      });
+      setBlogUploading(false);
+      if (res.url) {
+        setBlogForm((f) => ({ ...f, img_url: res.url }));
+        toast.success("Фото загружено");
+      } else {
+        toast.error(res.error || "Ошибка загрузки");
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   }
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -242,6 +345,7 @@ export default function Admin() {
     { key: "users", label: "Пользователи", icon: "Users" },
     { key: "subscriptions", label: "Подписки", icon: "CreditCard" },
     { key: "media", label: "Медиа", icon: "Image" },
+    { key: "blog", label: "Блог", icon: "BookOpen" },
   ];
 
   return (
@@ -515,6 +619,196 @@ export default function Admin() {
                           </span>
                         </div>
                       )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* BLOG */}
+          {tab === "blog" && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-cormorant text-2xl text-foreground">
+                  Блог <span className="text-muted-foreground text-lg">({blogPosts.length})</span>
+                </h2>
+                <button
+                  onClick={openBlogNew}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-90"
+                >
+                  <Icon name="Plus" size={16} />
+                  Новая статья
+                </button>
+              </div>
+
+              {/* Editor */}
+              {blogEditorOpen && (
+                <div className="bg-card border border-border rounded-2xl p-6 mb-6 space-y-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-foreground">{blogEditing ? "Редактировать статью" : "Новая статья"}</p>
+                    <button onClick={() => { setBlogEditorOpen(false); setBlogEditing(null); }} className="text-muted-foreground hover:text-foreground">
+                      <Icon name="X" size={16} />
+                    </button>
+                  </div>
+
+                  {/* Title */}
+                  <input
+                    type="text"
+                    placeholder="Заголовок *"
+                    value={blogForm.title}
+                    onChange={(e) => setBlogForm((f) => ({ ...f, title: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary"
+                  />
+
+                  {/* Tag + published */}
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      placeholder="Тег (напр. Photography)"
+                      value={blogForm.tag}
+                      onChange={(e) => setBlogForm((f) => ({ ...f, tag: e.target.value }))}
+                      className="flex-1 px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary"
+                    />
+                    <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={blogForm.is_published}
+                        onChange={(e) => setBlogForm((f) => ({ ...f, is_published: e.target.checked }))}
+                        className="rounded"
+                      />
+                      Опубликовано
+                    </label>
+                  </div>
+
+                  {/* Excerpt */}
+                  <textarea
+                    placeholder="Краткое описание (для превью)"
+                    value={blogForm.excerpt}
+                    onChange={(e) => setBlogForm((f) => ({ ...f, excerpt: e.target.value }))}
+                    rows={2}
+                    className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary resize-none"
+                  />
+
+                  {/* Content */}
+                  <textarea
+                    placeholder="Текст статьи (поддерживается обычный текст с переносами строк)"
+                    value={blogForm.content}
+                    onChange={(e) => setBlogForm((f) => ({ ...f, content: e.target.value }))}
+                    rows={10}
+                    className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary resize-y"
+                  />
+
+                  {/* Image upload */}
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Обложка статьи</p>
+                    <div className="flex gap-3 items-start">
+                      {blogForm.img_url && (
+                        <img src={blogForm.img_url} alt="" className="w-20 h-20 object-cover rounded-lg border border-border" />
+                      )}
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => blogImgRef.current?.click()}
+                          disabled={blogUploading}
+                          className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg text-sm text-muted-foreground hover:text-foreground hover:border-primary transition-colors disabled:opacity-50"
+                        >
+                          <Icon name="Upload" size={14} />
+                          {blogUploading ? "Загружаю..." : "Загрузить фото"}
+                        </button>
+                        {blogForm.img_url && (
+                          <button onClick={() => setBlogForm((f) => ({ ...f, img_url: "" }))} className="text-xs text-destructive hover:underline text-left">
+                            Удалить фото
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <input ref={blogImgRef} type="file" accept="image/*" className="hidden" onChange={handleBlogImgUpload} />
+                  </div>
+
+                  {/* SEO */}
+                  <div className="space-y-3 pt-2 border-t border-border">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">SEO</p>
+                    <input
+                      type="text"
+                      placeholder="SEO Title (title страницы)"
+                      value={blogForm.seo_title}
+                      onChange={(e) => setBlogForm((f) => ({ ...f, seo_title: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary"
+                    />
+                    <textarea
+                      placeholder="Meta Description"
+                      value={blogForm.seo_description}
+                      onChange={(e) => setBlogForm((f) => ({ ...f, seo_description: e.target.value }))}
+                      rows={2}
+                      className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary resize-none"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Ключевые слова (через запятую)"
+                      value={blogForm.keywords}
+                      onChange={(e) => setBlogForm((f) => ({ ...f, keywords: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  {/* Save */}
+                  <div className="flex justify-end gap-3 pt-2">
+                    <button onClick={() => { setBlogEditorOpen(false); setBlogEditing(null); }} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
+                      Отмена
+                    </button>
+                    <button
+                      onClick={saveBlogPost}
+                      disabled={blogSaving}
+                      className="flex items-center gap-2 px-5 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-90 disabled:opacity-50"
+                    >
+                      <Icon name="Save" size={15} />
+                      {blogSaving ? "Сохраняю..." : "Сохранить"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Posts list */}
+              {blogPosts.length === 0 ? (
+                <div className="border-2 border-dashed border-border rounded-2xl p-16 text-center">
+                  <Icon name="BookOpen" size={32} className="text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground text-sm">Создай первую статью</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {blogPosts.map((post) => (
+                    <div key={post.id} className="flex items-center gap-4 bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-colors">
+                      {post.img_url ? (
+                        <img src={post.img_url} alt="" className="w-14 h-14 object-cover rounded-lg shrink-0" />
+                      ) : (
+                        <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                          <Icon name="Image" size={20} className="text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{post.title}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">{post.tag}</span>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full ${post.is_published ? "bg-green-500/20 text-green-400" : "bg-muted text-muted-foreground"}`}>
+                            {post.is_published ? "Опубликовано" : "Скрыто"}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">/blog/{post.slug}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        <button
+                          onClick={() => openBlogEdit(post)}
+                          className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <Icon name="Pencil" size={14} />
+                        </button>
+                        <button
+                          onClick={() => deleteBlogPost(post.id)}
+                          className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center text-destructive hover:bg-destructive/20 transition-colors"
+                        >
+                          <Icon name="Trash2" size={14} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

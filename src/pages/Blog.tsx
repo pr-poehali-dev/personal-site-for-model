@@ -1,11 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import { posts } from "@/lib/posts";
+
+const AUTH_URL = "https://functions.poehali.dev/0f69b8f2-267a-4d9e-b597-2ba21b26ce35";
+
+interface BlogPostItem {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  img_url: string | null;
+  tag: string;
+  created_at: string;
+}
+
+const ROTATES = ["-rotate-2", "rotate-1", "-rotate-1", "rotate-2", "-rotate-2", "rotate-1"];
+
+function formatDate(s: string) {
+  return new Date(s).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+}
 
 export default function Blog() {
   const navigate = useNavigate();
   const [hovered, setHovered] = useState<number | null>(null);
+  const [posts, setPosts] = useState<BlogPostItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${AUTH_URL}/?action=get_blog_posts`)
+      .then((r) => r.json())
+      .then((d) => setPosts(d.posts || []))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="min-h-screen text-foreground overflow-x-hidden relative" style={{ backgroundColor: "#f5f0e8" }}>
@@ -41,71 +67,88 @@ export default function Blog() {
 
       {/* Grid */}
       <div className="relative z-10 max-w-6xl mx-auto px-6 pb-32">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
-          {posts.map((post) => (
-            <Link
-              key={post.id}
-              to={`/blog/${post.slug}`}
-              className={`group cursor-pointer transition-all duration-500 ${post.rotate} ${
-                hovered === post.id ? "rotate-0 scale-105 z-20" : "hover:rotate-0 hover:scale-105 z-10"
-              }`}
-              style={{ position: "relative", display: "block" }}
-              onMouseEnter={() => setHovered(post.id)}
-              onMouseLeave={() => setHovered(null)}
-            >
-              <div
-                className="bg-white shadow-2xl"
-                style={{
-                  padding: "12px 12px 48px 12px",
-                  boxShadow: hovered === post.id
-                    ? "0 30px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)"
-                    : "0 15px 40px rgba(0,0,0,0.4)",
-                  transition: "box-shadow 0.4s ease",
-                }}
-              >
-                <div className="overflow-hidden aspect-[3/4] w-full">
-                  <img
-                    src={post.img}
-                    alt={post.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                </div>
-                <div className="pt-4 pb-1 px-1 text-center" style={{ fontFamily: "'Golos Text', sans-serif" }}>
-                  <span
-                    className="inline-block text-[10px] tracking-[0.2em] uppercase mb-2 px-2 py-0.5 rounded-full"
-                    style={{ color: "hsl(350, 60%, 45%)", backgroundColor: "hsl(350, 60%, 95%)" }}
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Icon name="Loader" size={28} className="animate-spin text-muted-foreground" />
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="font-golos text-muted-foreground text-sm">No posts yet</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
+            {posts.map((post, idx) => {
+              const rotate = ROTATES[idx % ROTATES.length];
+              return (
+                <Link
+                  key={post.id}
+                  to={`/blog/${post.slug}`}
+                  className={`group cursor-pointer transition-all duration-500 ${rotate} ${
+                    hovered === post.id ? "rotate-0 scale-105 z-20" : "hover:rotate-0 hover:scale-105 z-10"
+                  }`}
+                  style={{ position: "relative", display: "block" }}
+                  onMouseEnter={() => setHovered(post.id)}
+                  onMouseLeave={() => setHovered(null)}
+                >
+                  <div
+                    className="bg-white shadow-2xl"
+                    style={{
+                      padding: "12px 12px 48px 12px",
+                      boxShadow: hovered === post.id
+                        ? "0 30px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)"
+                        : "0 15px 40px rgba(0,0,0,0.4)",
+                      transition: "box-shadow 0.4s ease",
+                    }}
                   >
-                    {post.tag}
-                  </span>
-                  <p className="text-sm font-semibold leading-snug line-clamp-2" style={{ color: "#1a1a1a" }}>
-                    {post.title}
-                  </p>
-                  <p className="text-[11px] mt-1" style={{ color: "#999" }}>{post.date}</p>
-                  {post.content && (
-                    <p className="text-[10px] mt-1 tracking-wider" style={{ color: "hsl(350, 60%, 45%)" }}>READ →</p>
-                  )}
-                </div>
-              </div>
+                    <div className="overflow-hidden aspect-[3/4] w-full bg-muted">
+                      {post.img_url ? (
+                        <img
+                          src={post.img_url}
+                          alt={post.title}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: "#e8ddd0" }}>
+                          <Icon name="Image" size={32} className="text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="pt-4 pb-1 px-1 text-center" style={{ fontFamily: "'Golos Text', sans-serif" }}>
+                      <span
+                        className="inline-block text-[10px] tracking-[0.2em] uppercase mb-2 px-2 py-0.5 rounded-full"
+                        style={{ color: "hsl(350, 60%, 45%)", backgroundColor: "hsl(350, 60%, 95%)" }}
+                      >
+                        {post.tag}
+                      </span>
+                      <p className="text-sm font-semibold leading-snug line-clamp-2" style={{ color: "#1a1a1a" }}>
+                        {post.title}
+                      </p>
+                      <p className="text-[11px] mt-1" style={{ color: "#999" }}>{formatDate(post.created_at)}</p>
+                      <p className="text-[10px] mt-1 tracking-wider" style={{ color: "hsl(350, 60%, 45%)" }}>READ →</p>
+                    </div>
+                  </div>
 
-              {/* Tape */}
-              <div
-                className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-6 opacity-60"
-                style={{
-                  background: "linear-gradient(135deg, rgba(255,220,180,0.8) 0%, rgba(255,200,150,0.6) 100%)",
-                  transform: "translateX(-50%) rotate(-1deg)",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                }}
-              />
+                  {/* Tape */}
+                  <div
+                    className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-6 opacity-60"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(255,220,180,0.8) 0%, rgba(255,200,150,0.6) 100%)",
+                      transform: "translateX(-50%) rotate(-1deg)",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                    }}
+                  />
 
-              {/* Excerpt on hover */}
-              <div className="absolute inset-x-0 -bottom-2 translate-y-full pt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none px-1">
-                <p className="font-golos text-xs text-muted-foreground leading-relaxed text-center line-clamp-3">
-                  {post.excerpt}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
+                  {/* Excerpt on hover */}
+                  <div className="absolute inset-x-0 -bottom-2 translate-y-full pt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none px-1">
+                    <p className="font-golos text-xs text-muted-foreground leading-relaxed text-center line-clamp-3">
+                      {post.excerpt}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
 
         <div className="text-center mt-32">
           <div className="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-primary/40 to-transparent mb-8" />

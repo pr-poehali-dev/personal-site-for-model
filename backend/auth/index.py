@@ -584,4 +584,161 @@ def handler(event: dict, context) -> dict:
             "created_at": str(row[1]), "author": name,
         }, 201)
 
+    # ── GET BLOG POSTS (публичный) ───────────────────────────────────────
+    if action == "get_blog_posts":
+        slug = params.get("slug")
+        conn = get_db()
+        cur = conn.cursor()
+        if slug:
+            cur.execute(
+                f"SELECT id, slug, title, excerpt, content, img_url, tag, seo_title, seo_description, keywords, created_at "
+                f"FROM {schema}.blog_posts WHERE slug = %s AND is_published = true",
+                (slug,)
+            )
+            row = cur.fetchone()
+            conn.close()
+            if not row:
+                return err("Not found", 404)
+            return ok({"post": {
+                "id": row[0], "slug": row[1], "title": row[2], "excerpt": row[3],
+                "content": row[4], "img_url": row[5], "tag": row[6],
+                "seo_title": row[7], "seo_description": row[8], "keywords": row[9],
+                "created_at": str(row[10]),
+            }})
+        cur.execute(
+            f"SELECT id, slug, title, excerpt, img_url, tag, created_at "
+            f"FROM {schema}.blog_posts WHERE is_published = true ORDER BY sort_order DESC, created_at DESC"
+        )
+        rows = cur.fetchall()
+        conn.close()
+        return ok({"posts": [
+            {"id": r[0], "slug": r[1], "title": r[2], "excerpt": r[3],
+             "img_url": r[4], "tag": r[5], "created_at": str(r[6])}
+            for r in rows
+        ]})
+
+    # ── ADMIN BLOG ACTIONS ───────────────────────────────────────────────
+    if action.startswith("admin_blog"):
+        payload = get_token_payload(event)
+        if not payload:
+            return err("Unauthorized", 401)
+        if payload.get("role") != "admin":
+            return err("Forbidden", 403)
+
+        if action == "admin_blog_list":
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(
+                f"SELECT id, slug, title, excerpt, img_url, tag, seo_title, seo_description, keywords, is_published, sort_order, created_at "
+                f"FROM {schema}.blog_posts ORDER BY sort_order DESC, created_at DESC"
+            )
+            rows = cur.fetchall()
+            conn.close()
+            return ok({"posts": [
+                {"id": r[0], "slug": r[1], "title": r[2], "excerpt": r[3],
+                 "img_url": r[4], "tag": r[5], "seo_title": r[6], "seo_description": r[7],
+                 "keywords": r[8], "is_published": r[9], "sort_order": r[10], "created_at": str(r[11])}
+                for r in rows
+            ]})
+
+        if action == "admin_blog_get" and method == "GET":
+            post_id = params.get("id")
+            if not post_id:
+                return err("id required")
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(
+                f"SELECT id, slug, title, excerpt, content, img_url, tag, seo_title, seo_description, keywords, is_published, sort_order "
+                f"FROM {schema}.blog_posts WHERE id = %s",
+                (int(post_id),)
+            )
+            row = cur.fetchone()
+            conn.close()
+            if not row:
+                return err("Not found", 404)
+            return ok({"post": {
+                "id": row[0], "slug": row[1], "title": row[2], "excerpt": row[3],
+                "content": row[4], "img_url": row[5], "tag": row[6],
+                "seo_title": row[7], "seo_description": row[8], "keywords": row[9],
+                "is_published": row[10], "sort_order": row[11],
+            }})
+
+        if action == "admin_blog_create" and method == "POST":
+            title = (body.get("title") or "").strip()
+            if not title:
+                return err("title required")
+            slug = body.get("slug") or title.lower().replace(" ", "-").replace("'", "").replace('"', "")
+            import re
+            slug = re.sub(r"[^a-z0-9-]", "", slug)[:80]
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(f"SELECT 1 FROM {schema}.blog_posts WHERE slug = %s", (slug,))
+            if cur.fetchone():
+                import time as _t
+                slug = f"{slug}-{int(_t.time())}"
+            cur.execute(
+                f"INSERT INTO {schema}.blog_posts (slug, title, excerpt, content, img_url, tag, seo_title, seo_description, keywords, is_published, sort_order) "
+                f"VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id, slug",
+                (slug, title, body.get("excerpt"), body.get("content"),
+                 body.get("img_url"), body.get("tag", "General"),
+                 body.get("seo_title"), body.get("seo_description"), body.get("keywords"),
+                 body.get("is_published", True), body.get("sort_order", 0))
+            )
+            row = cur.fetchone()
+            conn.commit()
+            conn.close()
+            return ok({"id": row[0], "slug": row[1]}, 201)
+
+        if action == "admin_blog_update" and method == "PUT":
+            post_id = body.get("id")
+            if not post_id:
+                return err("id required")
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(
+                f"UPDATE {schema}.blog_posts SET title=%s, excerpt=%s, content=%s, img_url=%s, tag=%s, "
+                f"seo_title=%s, seo_description=%s, keywords=%s, is_published=%s, sort_order=%s, updated_at=now() "
+                f"WHERE id=%s",
+                (body.get("title"), body.get("excerpt"), body.get("content"),
+                 body.get("img_url"), body.get("tag", "General"),
+                 body.get("seo_title"), body.get("seo_description"), body.get("keywords"),
+                 body.get("is_published", True), body.get("sort_order", 0), int(post_id))
+            )
+            conn.commit()
+            conn.close()
+            return ok({"updated": True})
+
+        if action == "admin_blog_delete" and method == "DELETE":
+            post_id = params.get("id")
+            if not post_id:
+                return err("id required")
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(f"DELETE FROM {schema}.blog_posts WHERE id=%s", (int(post_id),))
+            conn.commit()
+            conn.close()
+            return ok({"deleted": True})
+
+        if action == "admin_blog_upload_img" and method == "POST":
+            file_data = body.get("file")
+            filename = body.get("filename", "image.jpg")
+            content_type = body.get("content_type", "image/jpeg")
+            if not file_data:
+                return err("No file data")
+            raw = base64.b64decode(file_data)
+            ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+            key = f"blog/{int(time.time())}_{hashlib.md5(raw).hexdigest()[:8]}.{ext}"
+            import boto3
+            s3 = boto3.client(
+                "s3",
+                endpoint_url="https://bucket.poehali.dev",
+                aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+                aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+            )
+            s3.put_object(Bucket="files", Key=key, Body=raw, ContentType=content_type)
+            cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+            return ok({"url": cdn_url}, 201)
+
+        return err("Unknown blog action", 404)
+
     return err("Unknown action. Use ?action=register|login|me|google", 404)
