@@ -228,15 +228,23 @@ export default function BlogPost() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
               <a
-                href="/#subscribe"
-                className="px-8 py-3 rounded-none font-golos text-sm tracking-widest uppercase transition-all hover:opacity-90"
+                href="https://www.fanvue.com/miarey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-7 py-3 rounded-none font-golos text-sm tracking-widest uppercase transition-all hover:opacity-90"
                 style={{ backgroundColor: "#c4a35a", color: "#1a0f00" }}
               >
-                Subscribe Now
+                <span>🌸</span> Fanvue
               </a>
-              <span className="font-golos text-xs" style={{ color: "rgba(245,240,232,0.4)" }}>
-                From $3.99 / month
-              </span>
+              <a
+                href="https://boosty.to/miarey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-7 py-3 rounded-none font-golos text-sm tracking-widest uppercase transition-all hover:opacity-90"
+                style={{ backgroundColor: "transparent", color: "#f5f0e8", border: "1px solid rgba(245,240,232,0.3)" }}
+              >
+                <span>⚡</span> Boosty
+              </a>
             </div>
           </div>
         </div>
