@@ -190,12 +190,7 @@ export default function Blog() {
           </div>
         )}
 
-        <div className="text-center mt-32">
-          <div className="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-primary/40 to-transparent mb-8" />
-          <p className="font-golos text-xs tracking-[0.4em] uppercase text-muted-foreground/50">
-            More stories coming soon
-          </p>
-        </div>
+
       </div>
     </div>
   );
