@@ -482,13 +482,6 @@ export default function Index() {
               </div>
             </div>
           </div>
-          <div className="col-span-4 relative group overflow-hidden rounded-lg card-lift cursor-pointer" onClick={() => setLightbox({ imgs: [IMG_ABOUT, IMG_HERO], idx: 0 })}>
-            <img src={IMG_ABOUT} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" style={{ aspectRatio: "1/1" }} />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4">
-              <span className="font-cormorant italic text-sm text-foreground/90">Moody Portrait</span>
-              <Icon name="Expand" size={14} className="text-foreground/60" />
-            </div>
-          </div>
           <div className="col-span-6 relative group overflow-hidden rounded-lg card-lift cursor-pointer" onClick={() => setLightbox({ imgs: ["https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/4c82b62f-d4f5-4fab-8e15-96ced5f94c98.jpg"], idx: 0 })}>
             <img src="https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/4c82b62f-d4f5-4fab-8e15-96ced5f94c98.jpg" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" style={{ aspectRatio: "4/5" }} />
             <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4">
