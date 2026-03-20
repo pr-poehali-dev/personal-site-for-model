@@ -79,6 +79,30 @@ export default function Blog() {
         <p className="font-golos text-muted-foreground text-sm mt-6 max-w-lg mx-auto leading-relaxed">
           Welcome to the Mia Rey blog, where I share insights about portrait photography, aesthetic photoshoots and creative inspiration. Explore articles, ideas and exclusive content.
         </p>
+
+        {/* Social links */}
+        <div className="flex items-center justify-center gap-6 mt-8">
+          {[
+            { label: "Instagram", icon: "📸", url: "https://www.instagram.com/miareymodel?igsh=MWttMHFmaDk5bng2Nw%3D%3D&utm_source=qr" },
+            { label: "TikTok", icon: "🎵", url: "https://www.tiktok.com/@miareymodel?_r=1&_t=ZS-94qR22e8d65" },
+            { label: "Twitter", icon: "🐦", url: "https://x.com/miareymodel?s=21" },
+            { label: "Telegram", icon: "✈️", url: "https://t.me/+TvbSv9JOrm43NjZh" },
+          ].map((s) => (
+            <a
+              key={s.label}
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-1 transition-opacity hover:opacity-70"
+            >
+              <span className="text-xl">{s.icon}</span>
+              <span className="font-golos text-[10px] uppercase tracking-widest text-muted-foreground">{s.label}</span>
+            </a>
+          ))}
+        </div>
+        <p className="font-golos text-xs text-muted-foreground/60 mt-4 text-center">
+          Follow me for daily updates, behind-the-scenes and exclusive previews ✨
+        </p>
       </div>
 
       {/* Grid */}
