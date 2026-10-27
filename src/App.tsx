@@ -11,6 +11,7 @@ import BlogPost from "./pages/BlogPost";
 import Feed from "./pages/Feed";
 import FeedPost from "./pages/FeedPost";
 import NotFound from "./pages/NotFound";
+import PromoPopup from "@/components/PromoPopup";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <PromoPopup />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/blog" element={<Blog />} />

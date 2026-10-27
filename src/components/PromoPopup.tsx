@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
 const PROMO_IMG = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/adddfb04-150d-4974-8017-2e71fca735a3.jpg";
@@ -6,10 +7,15 @@ const PROMO_URL = "https://getruvada.com/?promo=fea49d76-145e-4e1d-8bb0-85a2bfbd
 const STORAGE_KEY = "promo_popup_last_shown";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+const isAllowedPath = (p: string) =>
+  p === "/" || p === "/blog" || p.startsWith("/blog/") || p === "/feed" || p.startsWith("/feed/");
+
 export default function PromoPopup() {
   const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
 
   useEffect(() => {
+    if (!isAllowedPath(pathname)) return;
     const last = Number(localStorage.getItem(STORAGE_KEY) || 0);
     if (Date.now() - last > DAY_MS) {
       const t = setTimeout(() => {
@@ -18,9 +24,9 @@ export default function PromoPopup() {
       }, 800);
       return () => clearTimeout(t);
     }
-  }, []);
+  }, [pathname]);
 
-  if (!open) return null;
+  if (!open || !isAllowedPath(pathname)) return null;
 
   return (
     <div
