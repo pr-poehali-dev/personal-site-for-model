@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import AuthModal from "@/components/AuthModal";
 import JetztLive from "@/components/JetztLive";
+import PromoPopup from "@/components/PromoPopup";
 import { getToken, getMe, clearToken, hasTier, User } from "@/lib/auth";
 
 const IMG_HERO = "https://cdn.poehali.dev/projects/cbd01a0e-f632-42ca-a22c-0a22e14519b4/bucket/bccf737b-8f5b-42a2-9a41-331473009369.jpg";
@@ -262,6 +263,7 @@ export default function Index() {
       </section>
 
       <JetztLive />
+      <PromoPopup />
 
       {/* ── TICKER ── */}
       <div className="overflow-hidden py-3 border-y border-border bg-muted/30">
